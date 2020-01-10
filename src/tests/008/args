@@ -1,0 +1,1 @@
+-s com.redhat.oddjob.test -o / -i com.redhat.oddjob.test printenv

@@ -1,0 +1,42 @@
+<!ELEMENT oddjobconfig (service|include|allow|deny)* >
+
+<!ELEMENT service ((object|allow|deny)*) >
+<!ATTLIST service name CDATA #REQUIRED >
+
+<!ELEMENT object ((interface|allow|deny)*) >
+<!ATTLIST object name CDATA #REQUIRED >
+
+<!ELEMENT interface ((method|allow|deny)*) >
+<!ATTLIST interface name CDATA #REQUIRED >
+
+<!ELEMENT method (helper?,(allow|deny)*) >
+<!ATTLIST method name CDATA #REQUIRED >
+
+<!ELEMENT helper EMPTY>
+<!ATTLIST helper exec CDATA #REQUIRED>
+<!ATTLIST helper arguments CDATA #REQUIRED>
+<!ATTLIST helper prepend_user_name (yes|no) #IMPLIED>
+<!ATTLIST helper argument_passing_method (stdin|cmdline) #IMPLIED>
+
+<!ELEMENT allow EMPTY>
+<!ATTLIST allow user CDATA #IMPLIED>
+<!ATTLIST allow min_uid CDATA #IMPLIED>
+<!ATTLIST allow max_uid CDATA #IMPLIED>
+@SELINUX_ACLS_XML_START@<!ATTLIST allow selinux_enforcing CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST allow selinux_context CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST allow selinux_user CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST allow selinux_role CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST allow selinux_type CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+
+<!ELEMENT deny EMPTY>
+<!ATTLIST deny user CDATA #IMPLIED>
+<!ATTLIST deny min_uid CDATA #IMPLIED>
+<!ATTLIST deny max_uid CDATA #IMPLIED>
+@SELINUX_ACLS_XML_START@<!ATTLIST deny selinux_enforcing CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST deny selinux_context CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST deny selinux_user CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST deny selinux_role CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+@SELINUX_ACLS_XML_START@<!ATTLIST deny selinux_type CDATA #IMPLIED>@SELINUX_ACLS_XML_END@
+
+<!ELEMENT include (#PCDATA) >
+<!ATTLIST include ignore_missing (yes|no) #REQUIRED >

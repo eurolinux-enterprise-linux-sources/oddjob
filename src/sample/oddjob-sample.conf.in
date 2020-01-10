@@ -1,0 +1,19 @@
+<!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+
+<busconfig>
+
+  <!-- Only root can own the @PACKAGE@ sample service -->
+  <policy user="root">
+    <allow own="@NAMESPACE@.@PACKAGE@.sample"/>
+  </policy>
+
+  <!-- Allow anyone to call the sample method of the @NAMESPACE@.@PACKAGE@.sample
+       interface implemented by the @NAMESPACEPATH@/@PACKAGE@/sample object provided
+       by the @NAMESPACE@.@PACKAGE@.sample service. -->
+  <policy context="default">
+    <allow send_destination="@NAMESPACE@.@PACKAGE@.sample" send_path="@NAMESPACEPATH@/@PACKAGE@/sample" send_interface="@NAMESPACE@.@PACKAGE@.sample" send_member="sample"/>
+  </policy>
+
+</busconfig>

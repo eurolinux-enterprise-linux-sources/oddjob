@@ -1,0 +1,18 @@
+You'll need a fairly up to date system -- some of the build files are
+generated, and the input used to generate them may be specific to
+whichever version of the autotools I had installed on my box when I
+committed the input files to git.
+
+If everything's set up correctly, this is all you need to do:
+    ./autogen
+    make all dist
+    rpmbuild -tb oddjob-*.tar.gz
+
+If you're looking to add a new service/object/interface/method to the
+list of those which can be invoked, create a new D-Bus config file under
+/etc/dbus-1/system.d which allows users to issue requests to your
+oddjobd-backed service (you'll need to restart D-Bus so that it will
+read this file), and create an oddjobd configuration file under
+/etc/oddjobd.conf.d to get oddjobd to accept those requests and to know
+what to do with them (you'll need to restart or SIGHUP oddjobd so that it
+will read the file).

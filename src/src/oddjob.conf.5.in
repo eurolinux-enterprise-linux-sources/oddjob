@@ -1,0 +1,15 @@
+.TH oddjob.conf 5 "25 April 2005" "oddjob Manual"
+
+.SH NAME
+oddjob.conf
+
+.SH DESCRIPTION
+The @mysysconfdir@/@DBUS_PACKAGE@/system.d/\fIoddjob.conf\fR configuration file
+specifies D-Bus-level access controls for the \fI@NAMESPACE@.oddjob\fR service,
+in particular which users can invoke methods provided by the service.  For more
+information, please see the D-Bus documentation.
+
+.SH SEE ALSO
+\fBoddjob_request\fR(1)
+\fBoddjobd.conf\fR(5)
+\fBoddjobd\fR(8)

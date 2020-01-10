@@ -1,0 +1,91 @@
+/*
+   Copyright 2005,2006,2007,2008 Red Hat, Inc.
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in
+      the documentation and/or other materials provided with the
+      distribution.
+    * Neither the name of Red Hat, Inc., nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+   IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#ifndef oddjob_common_h
+#define oddjob_common_h
+
+#include "../config.h"
+#include <dbus/dbus.h>
+
+#define ODDJOB_SERVICE_NAME		ODDJOB_NAMESPACE "." PACKAGE_NAME
+#define ODDJOB_OBJECT_PATH		ODDJOB_NAMESPACE_PATH "/" PACKAGE_NAME
+#define ODDJOB_INTERFACE_NAME		ODDJOB_NAMESPACE "." PACKAGE_NAME
+#define ODDJOB_LIST_REQUESTS_METHOD	"list"
+#define ODDJOB_LIST_ALL_REQUESTS_METHOD	"listall"
+#define ODDJOB_SERVICE_ENV_VAR		PACKAGE_NAME_CAPS "_SERVICE_NAME"
+#define ODDJOB_OBJECT_ENV_VAR		PACKAGE_NAME_CAPS "_OBJECT_PATH"
+#define ODDJOB_INTERFACE_ENV_VAR	PACKAGE_NAME_CAPS "_INTERFACE_NAME"
+#define ODDJOB_METHOD_ENV_VAR		PACKAGE_NAME_CAPS "_METHOD_NAME"
+#define ODDJOB_CALLING_USER_VAR		PACKAGE_NAME_CAPS "_CALLING_USER"
+#define ODDJOB_USER_FNMATCH_FLAGS	(FNM_NOESCAPE)
+#define ODDJOB_OBJECT_FNMATCH_FLAGS	(FNM_PATHNAME | FNM_NOESCAPE)
+#define ODDJOB_SECONTEXT_FNMATCH_FLAGS	(FNM_NOESCAPE)
+#define ODDJOB_SEUSER_FNMATCH_FLAGS	(FNM_NOESCAPE)
+#define ODDJOB_SEROLE_FNMATCH_FLAGS	(FNM_NOESCAPE)
+#define ODDJOB_SETYPE_FNMATCH_FLAGS	(FNM_NOESCAPE)
+#define ODDJOB_SERANGE_FNMATCH_FLAGS	(FNM_NOESCAPE)
+#define ODDJOB_ERROR_ACL		ODDJOB_INTERFACE_NAME ".Error.ACL"
+#define ODDJOB_ERROR_EXEC		ODDJOB_INTERFACE_NAME ".Error.Exec"
+#define ODDJOB_ERROR_INTERNAL		ODDJOB_INTERFACE_NAME ".Error.Internal"
+#define ODDJOB_ERROR_UNKNOWN_SENDER	ODDJOB_INTERFACE_NAME ".Error.UnknownSender"
+#define ODDJOB_ERROR_UNKNOWN_USER	ODDJOB_INTERFACE_NAME ".Error.UnknownUser"
+#define ODDJOB_ERROR_INVALID_CALL	ODDJOB_INTERFACE_NAME ".Error.InvalidCall"
+#define ODDJOB_ERROR_NO_OBJECT		ODDJOB_INTERFACE_NAME ".Error.NoObject"
+#define ODDJOB_ERROR_NO_INTERFACE	ODDJOB_INTERFACE_NAME ".Error.NoInterface"
+#define ODDJOB_ERROR_NO_METHOD		ODDJOB_INTERFACE_NAME ".Error.NoMethod"
+#define ODDJOB_ERROR_UNIMPLEMENTED_METHOD	ODDJOB_INTERFACE_NAME ".Error.UnimplementedMethod"
+
+#ifndef DBUS_MAJOR_VERSION
+#define DBUS_MAJOR_VERSION ODDJOB_DBUS_MAJOR_VERSION
+#endif
+#ifndef DBUS_MINOR_VERSION
+#define DBUS_MINOR_VERSION ODDJOB_DBUS_MINOR_VERSION
+#endif
+
+#ifndef DBUS_CHECK_VERSION
+#define DBUS_CHECK_VERSION(_major,_minor,_micro) ((DBUS_MAJOR_VERSION > _major) || ((DBUS_MAJOR_VERSION == _major) && (DBUS_MINOR_VERSION > _minor)) || ((DBUS_MAJOR_VERSION == _major) && (DBUS_MINOR_VERSION == _minor) && (DBUS_MICRO_VERSION == _micro)))
+#endif
+
+#ifndef DBUS_SERVICE_DBUS
+#define DBUS_SERVICE_DBUS	"org.freedesktop.DBus"
+#endif
+
+#ifndef DBUS_PATH_DBUS
+#define DBUS_PATH_DBUS		"/org/freedesktop/DBus"
+#endif
+
+#ifndef DBUS_INTERFACE_DBUS
+#define DBUS_INTERFACE_DBUS	"org.freedesktop.DBus"
+#endif
+
+#define ODDJOB_INTROSPECTION_INTERFACE DBUS_INTERFACE_DBUS ".Introspectable"
+#define ODDJOB_INTROSPECTION_METHOD "Introspect"
+
+#endif

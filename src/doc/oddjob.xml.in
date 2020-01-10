@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V@DOCBOOK_VERSION@//EN" 
+ "http://www.oasis-open.org/docbook/xml/@DOCBOOK_VERSION@/docbookx.dtd">
+<article id="oddjob" lang="en">
+	<articleinfo>
+	<title>@DOCBOOK_PACKAGE_START@oddjob@DOCBOOK_PACKAGE_END@: Threat or
+	Menace?</title>
+	<copyright>
+		<year>2005,2006,2007,2008</year>
+		<holder>Red Hat, Inc.</holder>
+	</copyright>
+	<author>
+		<firstname>Nalin</firstname>
+		<surname>Dahyabhai</surname>
+		<affiliation><orgname>Red Hat, Inc.</orgname></affiliation>
+		<email>nalin@redhat.com</email>
+	</author>
+	<abstract>
+	<para>
+	The @DOCBOOK_PACKAGE_START@oddjob@DOCBOOK_PACKAGE_END@ package provides
+	a means for unprivileged applications to invoke and take limited
+	control of privileged applications by issuing requests using the
+	@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@ system message bus.
+	</para>
+	</abstract>
+	</articleinfo>
+
+	<section>
+	<title>Background</title>
+	<para>
+	In many applications, particularly those which perform some sort of
+	administrative task, it becomes useful to separate the presentation
+	(which needn't have any special privileges, and frequently shouldn't)
+	from the logic which actually performs the task (which frequently
+	needs privileges).
+	</para>
+	<para>
+	In these situations, the unprivileged application typically
+	accomplishes the privileged task either by running a setuid helper
+	application or by connecting to a long-running process and issuing a
+	request.
+	</para>
+	<para>
+	Of the two options, the setuid helper approach offers the advantage of
+	requiring less configuration beforehand, but can be undesirable in the
+	context of libraries or demand-loaded modules, when the direct caller
+	may be unaware of the state of the calling application with regard to
+	signal handling, which must be taken into account if the caller
+	expects to wait for the privileged child process to complete its task.
+	Additionally, certain attributes of the unprivileged process which are
+	inherited by the privileged helper (current directory, other open file
+	handles, environment variables) may be manipulated to become vectors
+	for attack by malicious users.
+	</para>
+	<para>
+	The alternative, the use of a long-running process which services
+	these requests, becomes attractive for these reasons.  The primary
+	objections to this approach are frequently:
+	</para>
+	<itemizedlist>
+	<listitem><para>that it adds yet another long-running
+	resource-consuming process to the system</para></listitem>
+	<listitem><para>that the long-running process must be installed
+	properly to ensure that it is started and stopped at system boot and
+	shutdown</para></listitem>
+	<listitem><para>an entire protocol for encoding communications between
+	the client and server must be invented</para></listitem>
+	</itemizedlist>
+	<para>
+	A third option has recently become available: the <ulink
+	url="http://freedesktop.org/wiki/Software_2fdbus"> <citetitle
+	pubwork="webpage">@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@</citetitle></ulink>
+	system message bus.  The system message bus provides an interprocess
+	communication mechanism to processes on the system.  The bus carries
+	three types of messages:
+	</para>
+	<itemizedlist>
+	<listitem><para><emphasis>events</emphasis>, which are broadcast and
+	for which no response is expected</para></listitem>
+	<listitem><para><emphasis>method calls</emphasis>, which are unicast
+	and for which a response is usually expected</para></listitem>
+	<listitem><para><emphasis>method responses</emphasis>, which are
+	unicast and which are sent in response to a <emphasis>method
+	call</emphasis></para></listitem>
+	</itemizedlist>
+	<para>
+	Method call and response messages which are sent over the system
+	message bus provide a loosely coupled object-oriented RPC mechanism.
+	</para>
+	<para>
+	The @DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@ libraries also
+	provide a means of encoding, transmitting, listening for, receiving,
+	and parsing messages which are sent over the bus.  Using
+	@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@ as the mechanism for
+	a long-running process reduces the time required to implement both a
+	long-running server and its clients.  Because the implementation of the
+	bus protocols is designed to be reused, it also offers the opportunity
+	to have one privileged process service a potentially large number of
+	clients.
+	</para>
+	<para>
+	The @DOCBOOK_PACKAGE_START@oddjob@DOCBOOK_PACKAGE_END@ package
+	implements such a server.
+	</para>
+	</section>
+
+	<section>
+	<title>oddjob</title>
+	<para>
+	The server provided by
+	@DOCBOOK_PACKAGE_START@oddjob@DOCBOOK_PACKAGE_END@,
+	<command>oddjobd</command>, provides services which appear to be
+	indistinguishable from other services provided through
+	@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@, but in an
+	unconventional manner.  Before continuing, it is instructive to look at
+	how clients and servers interact over the bus.
+	</para>
+	<para>
+	The fundamental unit of communication over the system bus is the
+	<emphasis>message</emphasis>.  For practical purposes, a message is
+	composed of the addressing information which is needed to route that
+	message to the proper recipient, and one of:
+	<itemizedlist>
+	<listitem><para>information about the event being broadcast (the
+	sender, additional information)</para></listitem>
+	<listitem><para>the method being called (the caller, the provider,
+	method arguments)</para></listitem>
+	<listitem><para>the method being responded to (the caller, the
+	provider, results)</para></listitem>
+	</itemizedlist>
+	</para>
+	<para>
+	More specifically, each message includes the address of its sender.
+	Method call and response messages should also include the address of
+	the intended recipient.  A bus address uniquely identifies a process
+	which is connected to the message bus.  Generally, a single process
+	will have exactly one open connection to the message bus.
+	</para>
+	<para>
+	A message also includes an <emphasis>object path</emphasis>, which
+	allows multiple client sessions to be serviced by the same server.
+	Each object can provide multiple <emphasis>interface</emphasis>s,
+	which are groups of related <emphasis>methods</emphasis>.
+	</para>
+	<para>
+	The function of the <command>oddjobd</command> daemon is to allow
+	arbitrary services to be provided over the message bus with a minimum
+	of &quot;glue&quot;.  Services provided by
+	<command>oddjobd</command> can be implemented very simply.  This
+	simplicity of implementation is gained at the cost of some robustness,
+	but for certain applications this is an acceptable tradeoff.
+	</para>
+	<para>
+	An analogous comparison can be made between applications which are
+	implemented on web servers using scripting engines and applications
+	which are implemented using the Common Gateway Interface
+	(<acronym>CGI</acronym>).
+	</para>
+	</section>
+
+	<section>
+	<title>An Example</title>
+	<para>
+	Take for example, a service which is provided by the well-known
+	address &quot;com.example.system_manager&quot;.  This management service
+	controls multiple systems, each of which is represented as a different
+	object with a name of the form
+	&quot;/com/example/Systems/server1&quot;.  Each
+	object offers multiple interfaces, such as the
+	&quot;<interface>com.example.power</interface>&quot; interface, which
+	provides methods such as &quot;<methodname>reboot</methodname>&quot;
+	and &quot;<methodname>poweroff</methodname>&quot;.
+	</para>
+	<para>
+	Conventionally, the implementation of the
+	&quot;com.example.system_manager&quot; service would require a
+	long-running server process which would need to include logic for
+	connecting to the system message bus, receiving requests, and issuing
+	replies, in addition to its core functionality.
+	</para>
+	<para>
+	Using <command>oddjobd</command>, the entire implementation can be
+	synthesized by providing the proper configuration files and shell
+	scripts.
+	</para>
+		<section>
+		<title>@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@
+		Configuration</title>
+		<para>
+		The @DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@ system
+		bus enforces restrictions on which applications can reserve
+		well-known bus addresses.  It bases this restriction on the UID
+		under which a client process is executing when it requests the
+		reservation.  Additionally, the system message bus can impose
+		access controls on the ability to send or receive messages to
+		or from a particular service/object/interface/method set using
+		the bus.  This example allows processes running as
+		&quot;root&quot; to reserve the name
+		&quot;com.example.system_manager&quot;, and allows any user to
+		call its <methodname>reboot</methodname> and
+		<methodname>poweroff</methodname> methods.
+		<tip><title>Tip</title><para>The message bus daemon itself has
+		no specific use for object paths and interface and method names
+		beyond allowing their use in access control statements.  It is
+		your application which gives the names their
+		meanings.</para></tip>
+		<programlisting><![CDATA[<!DOCTYPE busconfig PUBLIC
+	  "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+	  "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+
+<busconfig>
+
+	<!-- Only root can own the system manager service. -->
+	<policy user="root">
+		<allow own="com.example.system_manager">
+	</policy>
+
+	<!-- Allow anyone to call the reboot and poweroff
+	     methods.  This is probably a bad idea. -->
+	<policy context="default">
+		<allow send_destination="com.example.system_manager"
+		       send_path="/com/example/Systems/server1"
+		       send_interface="com.example.power"
+		       send_member="reboot"/>
+		<allow send_destination="com.example.system_manager"
+		       send_path="/com/example/Systems/server1"
+		       send_interface="com.example.power"
+		       send_member="poweroff"/>
+	</policy>
+
+</busconfig>]]></programlisting>
+		</para>
+		</section>
+
+		<section>
+		<title><command>oddjobd</command> Configuration</title>
+		<para>
+		The <command>oddjobd</command> daemon provides services which
+		are implemented by external helper applications.  The helpers
+		are executed with superuser privileges, and receive their
+		arguments as strings, as the configuration dictates, either as
+		command-line parameters or via stdin.  The exit status of the
+		helpers, along with any text they print, is returned to the
+		caller.  This example configures <command>oddjobd</command> to
+		provide a &quot;com.example.system_manager&quot; service which
+		provides a &quot;/com/example/Systems/server1&quot; object
+		which implements the
+		&quot;<interface>com.example.power</interface>&quot; interface,
+		which provides methods named
+		&quot;<methodname>reboot</methodname>&quot; and
+		&quot;<methodname>poweroff</methodname>&quot;, and allows the
+		superuser to invoke either method.
+		<programlisting><![CDATA[<?xml version="1.0"?>
+<oddjobconfig>
+	<service name="com.example.system_manager">
+		<object name="/com/example/Systems/server1">
+			<interface name="com.example.power">
+				<method name="reboot">
+					<helper exec="/sbin/reboot"
+						arguments="0"
+						prepend_user_name="no"/>
+					<!-- Only root and jimbo can use this -->
+					<allow user="root"/>
+					<allow user="jimbo"/>
+				</method>
+				<method name="poweroff">
+					<helper exec="/sbin/poweroff"
+						arguments="0"
+						prepend_user_name="no"/>
+					<!-- Only root and jimbo can use this -->
+					<allow user="root"/>
+					<allow user="jimbo"/>
+				</method>
+			</interface>
+		</object>
+	</service>
+</oddjobconfig>]]></programlisting>
+		</para>
+		</section>
+	</section>
+
+	<section>
+	<title>Configuring <command>oddjobd</command></title>
+	<para>
+	The <command>oddjobd</command> configuration is normally read from
+	<filename>/etc/oddjobd.conf</filename>, but in most deployments it
+	will direct the daemon to read all of the configuration files from
+	<filename>/etc/oddjobd.conf.d</filename>, taking the union of the
+	contents of all of the configuration files as its configuration.
+	<tip><title>Tip</title><para>When installing your application, dropping
+	a new configuration file into this directory is recommended over
+	editing the existing configuration files.</para></tip>
+	</para>
+	<para>
+	Each configuration file includes an <![CDATA[<oddjobconfig>]]>
+	element.  An <![CDATA[<oddjobconfig>]]> element contains
+	<![CDATA[<include>]]> elements, <![CDATA[<service>]]> elements,
+	<![CDATA[<allow>]]> elements, and <![CDATA[<deny>]]> elements.
+	</para>
+	<para>
+	An <![CDATA[<include>]]> element names a file which should also be
+	scanned for configuration data, and optionally defines an attribute
+	named &quot;ignore_missing&quot;, which if set to &quot;yes&quot; will
+	cause failure to read the named file to be treated as a non-fatal
+	error.
+	</para>
+	<para>
+	A <![CDATA[<service>]]> element names a
+	@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@ service address at
+	which services defined within the scope of this element will be
+	provided by <command>oddjobd</command>.  The service address is given
+	as the value of its &quot;name&quot; attribute, and it may contain
+	<![CDATA[<object>]]> elements, <![CDATA[<allow>]]> elements, and
+	<![CDATA[<deny>]]> elements.
+	<tip><title>Tip</title><para>The service name should be unique to your
+	application.  The name &quot;@NAMESPACE@.oddjob&quot; is
+	reserved.</para></tip>
+	</para>
+	<para>
+	An <![CDATA[<object>]]> element names a
+	@DOCBOOK_PACKAGE_START@D-Bus@DOCBOOK_PACKAGE_END@ object path which
+	provides one or more interfaces to client processes.  The object path
+	is given as the value of its &quot;name&quot; attribute, and it may
+	contain <![CDATA[<interface>]]> elements.  Its name may include
+	wildcards, in which case any request to an object whose name matches
+	the wildcard will be considered to match this element.
+	<caution><title>Caution</title><para>If a single client request matches
+	multiple different <![CDATA[<object>]]> elements, the behavior of
+	<command>oddjobd</command> becomes undefined.</para></caution>  The
+	<![CDATA[<object>]]> element may also contain <![CDATA[<allow>]]> and
+	<![CDATA[<deny>]]> elements.
+	</para>
+	<para>
+	An <![CDATA[<interface>]]> element names a group of related methods
+	which <command>oddjobd</command> will provide at the containing
+	<![CDATA[<object>]]>'s path.  The interface name is given as the value
+	of its &quot;name&quot; attribute.  It may contain
+	<![CDATA[<method>]]>, <![CDATA[<allow>]]>, and <![CDATA[<deny>]]>
+	elements.
+	</para>
+	<para>
+	An <![CDATA[<method>]]> element names a specific method which
+	<command>oddjobd</command> will provide as part of the containing
+	<![CDATA[<interface>]]> at the containing <![CDATA[<object>]]>'s path.
+	The method name is given as the value of its &quot;name&quot;
+	attribute, and it may contain <![CDATA[<helper>]]>,
+	<![CDATA[<allow>]]>, and <![CDATA[<deny>]]> elements.
+	</para>
+	<para>
+	An <![CDATA[<helper>]]> element specifies that a method is implemented
+	as an external helper (<command>oddjobd</command> itself implements a
+	limited number of methods internally).  It includes a number of
+	attributes:
+	<itemizedlist>
+	<listitem><para>&quot;exec&quot;, the path of the binary to
+	run</para></listitem>
+	<listitem><para>&quot;arguments&quot;, the number of arguments which a
+	client is expected to supply to the method</para></listitem>
+	<listitem><para>&quot;prepend_user_name&quot;, whether or not the
+	calling user's name should be prepended to the list of arguments
+	before they are passed to the helper</para></listitem>
+	<listitem><para>&quot;argument_passing_method&quot;, either
+	&quot;stdin&quot; (the default) or &quot;cmdline&quot;, specifying
+	that method arguments should be passed in on stdin, one parameter per
+	line, or as command-line arguments
+	</para></listitem>
+	</itemizedlist>
+	</para>
+	<para>
+	An <![CDATA[<allow>]]> or <![CDATA[<deny>]]> element specifies an
+	entry in an access control list (<acronym>ACL</acronym>) which
+	controls whether or not <command>oddjobd</command> will attempt to
+	fulfill client requests.
+	</para>
+	<para>
+	Each entry defines a set of values for
+	attributes of a client request.  If a specific request provides these
+	values, the access control list entry is considered to match it.
+	<emphasis>Attributes which are not specified as part of an access
+	control entry are ignored when checking if a request matches that
+	entry.</emphasis> The defined attributes are:
+	<itemizedlist>
+	<listitem><para>&quot;user&quot;, the client's user
+	name</para></listitem>
+	<listitem><para>&quot;min_uid&quot;, a UID which the user's UID must
+	be greater than or equal to</para></listitem>
+	<listitem><para>&quot;max_uid&quot;, a UID which the user's UID must
+	be less than or equal to</para></listitem>
+	@SELINUX_ACLS_XML_START@
+	<listitem><para>&quot;selinux_enforcing&quot;, &quot;yes&quot; or
+	&quot;no&quot;, corresponding to whether SELinux is enabled and in
+	enforcing mode</para></listitem>
+	<listitem><para>&quot;selinux_context&quot;, the SELinux context
+	of the client process</para></listitem>
+	<listitem><para>&quot;selinux_user&quot;, the SELinux user
+	of the client process</para></listitem>
+	<listitem><para>&quot;selinux_role&quot;, the SELinux role
+	of the client process</para></listitem>
+	<listitem><para>&quot;selinux_type&quot;, the SELinux type
+	of the client process</para></listitem>
+	@SELINUX_ACLS_XML_END@
+	</itemizedlist>
+	</para>
+	<para>
+	The process of checking the ACL for any method is simple:
+	<orderedlist>
+	<listitem><para>First, if the ACL contains a <![CDATA[<deny>]]> element
+	which matches the request, access is denied.</para></listitem>
+	<listitem><para>Second, if the ACL contains an <![CDATA[<allow>]]>
+	element which matches the request, access is allowed.</para></listitem>
+	<listitem><para>If no entry in the ACL matches the request, the check
+	continues on to the containing <![CDATA[<interface>]]> element's ACL.
+	If no match is found, the containing <![CDATA[<object>]]> element's ACL
+	is consulted, then that of the containing <![CDATA[<service>]]>
+	element.  Lastly, the ACL of the top-level <![CDATA[<oddjobconfig>]]>
+	element is scanned.  If, after all of these checks, no match was found,
+	access is denied.</para></listitem>
+	</orderedlist>
+	</para>
+	<para>
+	The helpers themselves are executed with superuser privileges and with
+	these variables set in the environment:
+	<itemizedlist>
+	<listitem><para>&quot;ODDJOB_CALLING_USER&quot;, the name of the
+	calling user</para></listitem>
+	<listitem><para>&quot;ODDJOB_SERVICE_NAME&quot;, the name of the
+	called service</para></listitem>
+	<listitem><para>&quot;ODDJOB_OBJECT_PATH&quot;, the name of the called
+	object</para></listitem>
+	<listitem><para>&quot;ODDJOB_INTERFACE_NAME&quot;, the name of the
+	called interface</para></listitem>
+	<listitem><para>&quot;ODDJOB_METHOD_NAME&quot;, the name of the called
+	method</para></listitem>
+	</itemizedlist>
+	<caution><title>Caution</title><para>Helpers must treat arguments as
+	untrusted data to avoid escalating a compromise of an account
+	which would be allowed to call the method to a compromise of the
+	superuser account.  The <command>oddjobd</command> server performs
+	no other authentication.</para></caution>
+	</para>
+	<para>
+	If an error occurs when <command>oddjobd</command> attempts to start
+	the helper, or if the helper exits abnormally due to a signal, the
+	caller receives an error message.
+	</para>
+	<para>
+	If the helper runs to completion, <command>oddjobd</command> reports
+	the helper's exit status, along with any data which the helper output
+	to its standard output and error descriptors.
+	</para>
+	</section>
+
+	<section>
+	<title>Built-in Methods</title>
+	<para>
+	The <command>oddjobd</command> server implements a small set of methods
+	internally as part of the @NAMESPACE@.oddjob interface of the
+	@NAMESPACEPATH@/oddjob object provided by the @NAMESPACE@.oddjob
+	service.  These include:
+	<itemizedlist>
+	<listitem><para><emphasis>list</emphasis>: List the methods which the
+	calling user would be allowed to call.</para></listitem>
+	<listitem><para><emphasis>listall</emphasis>: List all configured
+	methods.</para></listitem>
+	<listitem><para><emphasis>reload</emphasis>: Reload the configuration
+	without restarting.
+	</para></listitem>
+	<listitem><para><emphasis>quit</emphasis>: Exit.</para></listitem>
+	</itemizedlist>
+	Additionally, the <command>oddjobd</command> server implements the
+	D-Bus introspection interface for all services which it provides to
+	clients.  By default, attempts to call these interfaces are denied
+	unless ACLs have been put in place to allow it.
+	</para>
+	</section>
+
+	<section>
+	<title>Implementation Limits</title>
+	<para>
+	The current implementation of <command>oddjobd</command> imposes
+	some limitations on clients.
+	<itemizedlist>
+	<listitem><para>A client request can contain no more than 65535
+	arguments.</para></listitem>
+	<listitem><para>No more than 65535 services may be
+	defined.</para></listitem>
+	<listitem><para>A service can provide no more than 65535
+	objects.</para></listitem>
+	<listitem><para>An object can provide no more than 65535
+	interfaces.</para></listitem>
+	<listitem><para>An interface can provide no more than 65535
+	methods.</para></listitem>
+	</itemizedlist>
+	</para>
+	</section>
+</article>

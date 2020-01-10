@@ -1,0 +1,393 @@
+2010-01-27 nalin
+	* Makefile.am: don't try to use RPM for tagging; take the release
+	number out of the tarball name
+	* src/Makefile.am: stop installing a shared library and .pc file
+	* src/Makefile.am, src/oddjobd-mkhomedir.conf.in: move the helper
+	from $pkglibdir to $pkglibexecdir so that the configuration file
+	looks the same across multilib arch pairs (#559232)
+	* NEWS: add
+	* scripts/oddjobd.in: advertise the verbs we recognize (#522131)
+	* oddjob.spec,configure.ac: bump version to 0.30
+	* oddjob.spec: drop -libs, -devel, and -python subpackages
+	* src/Makefile.am: make the library and headers conditional
+	* oddjob.spec: some rpmlint cleanups
+	* src/oddjob_dbus.c: refuse to try to close the connection to the
+	system bus; unhook our input filter correctly
+	* src/oddjobd.c: don't make a last-ditch attempt to try to close
+	the connection to the system bus at shutdown-time
+	* src/oddjobd.c: report ENOENT if that's why getfilecon() fails
+	* src/sanity.sh,tests/sanity.sh.in,tests/{007,008}/expected_stdout.in:
+	use stat instead of ls, which lets us dictate the output format.  deal
+	with the fact that a NUL in /proc/$$/cmdline runs up against string
+	truncation with current D-Bus
+
+2008-05-29 nalin
+	* src/launch.c,src/mainloop.c,src/mkhomedir.c,src/mounthomedir.c,
+	src/oddjob_request.c,src/oddjobd.c: remove #ident tags which are
+	no longer kept up to date now that we've moved from CVS to git.
+	* src/pam_oddjob_mkhomedir.c,src/pam_oddjob_mkhomedir.8.in: try to
+	stat() the home directory first, and don't bother asking oddjobd to
+	do anything unless we get an ENOENT back (Dan Walsh).
+
+2008-05-29 nalin
+	* src/oddjobd.c(oddjobd_exec_method): provide useful error messages
+	for SELinux-specific errors we encounter before calling exec()
+
+2008-05-28 nalin
+	* common.h: include <dbus/dbus.h> to avoid defining DBUS_MAJOR_VERSION
+	when we don't have to.
+	* src/oddjob-dbus.c: fix a quoting warning in a comment.  Don't use
+	"uid" to create a string, which we would overwrite anyway, before it's
+	been initialized.
+	* src/oddjob-mkhomedir.conf.in,src/mkhomedirfor.in,src/mkmyhomedir.in:
+	fix a couple of places where the namespacing changes for splitting out
+	mkhomedir didn't quite get made right.
+	* oddjob.spec: check for a running daemon and tell it to reload its
+	configuration when oddjob-mkhomedir gets installed
+
+2007-12-10 nalin
+	* src/mkhomedir.c: apply the umask to newly-created files as well.
+
+2007-09-05 nalin
+	tag 0.29
+	* scripts/oddjobd.in: output a message when we 'reload'.
+	* src/oddjob_dbus.c: don't bother attempting to determine the SELinux
+	context of the remote end when we aren't going to use that information,
+	so we avoid outputting an unnecessary error message when it fails on
+	non-SELinux boxes.
+	* scripts/oddjobd.in: work on conforming to Fedora initscripts
+	standards.
+	* src/oddjobd.c: mention -t in the help output
+	* src/oddjob{,d}.conf.in,src/oddjob{,d}-mkhomedir.conf.in: split the
+	mkhomedir helper's configuration out into its own file, with its own
+	service name and object and interface names.
+	* src/pam_oddjob_mkhomedir.{c,8.in}: account for the new service naming.
+	* src/mkhomedirfor: wrapper for dbus-send which calls mkhomedirfor
+	* src/mkmyhomedir: wrapper for dbus-send which calls mkmyhomedir
+	* src/oddjobd.c: implement a "listall" which bypasses ACLs so that
+	we can provide that ability with a different ACL (for root, mainly)
+	* src/reload: wrapper for dbus-send which calls our reload method
+	* autogen: try to guess lib/lib64 correctly
+	* autogen.maint: define DBUS_DISABLE_DEPRECATED
+	* configure.ac,src/common.h: hard-code the introspection interface
+	and method names, because they didn't change after all.
+	* oddjob.spec: split out mkhomedir into a subpackage
+	* doc/oddjob.xml.in: note what kinds of data to expect back from
+	oddjobd, and list the built-in methods.
+	* src/mainloop.c(timeout_dbus_toggle,handle): prefer to call
+	dbus_watch_get_unix_fd() instead of dbus_watch_get_fd(), if
+	available.
+	* src/oddjob_dbus.c: never call dbus_message_iter_get_array_len().
+	* src/oddjobd.conf.5.in: fix formatting so that making the SELinux-
+	specific bits conditionally visible works again
+	* src/oddjobd.conf.in: stop mentioning oddjobd-local.conf in the
+	comments, but attempt to include it anyway for compatibility's sake.
+	Add a "crontabs" example in the comment.
+	* src/oddjobd.c: set a SIGPIPE handler (Jose Plans).
+
+2007-08-16 nalin
+	* src/oddjob_request.c: sanity-check that we have a method name
+	* src/buffer.c: fix the license
+
+2007-03-28 nalin
+	tag 0.28-1
+	* src/pam_oddjob_mkhomedir.8.in: note that the umask and location of
+	the skeleton directory can't be passed in as arguments
+	* src/mkhomedir.c: print the current/default skeleton location and
+	umask when we provide help output.
+
+2007-03-21 nalin
+	* src/launch.c: correct a compile warning about use of parentheses
+	* configure.ac,src/common.h,src/mainloop.c,src/oddjob_dbus.c: pick out
+	the DBus micro version number, rework DBUS_CHECK_VERSION macro to take
+	three parameters.
+
+2007-03-21 nalin
+	* src/oddjob_request.c: handle the more-natural method of specifying
+	interface names by prepending them to the method name with a "."
+	separator.
+	* src/mkhomedir.c: use strtol() instead of atoi() to parse the umask,
+	so that octal should work now.
+	* oddjob.spec: disable dependency tracking at configure-time (#228928)
+
+2007-02-15 nalin
+	* configure.ac: fix saving/restoring of CFLAGS while we're trying to
+	work them out (#228928)
+
+2006-07-19 nalin
+	tag 0.27-1
+	* src/mainloop.c,src/oddjob.conf.5.in,src/oddjob_dbus.c,
+	src/oddjob_request.1.in,src/oddjobd.8.in,src/oddjobd.c,
+	src/oddjobd.conf.5.in,src/oddjobd.conf.in,src/pam_oddjob_mkhomedir.8.in,
+	src/pam_oddjob_mounthomedir.8.in: change capitalization of D-BUS in
+	docs and comments.
+	* src/launch.c: handle section headers with one of two capitalization
+	styles.
+
+2006-07-19 nalin
+	* src/oddjob_dbus.c: don't explicitly subscribe to any messages.  This
+	should stop the message bus daemon from trying to decide if we should
+	see all of the messages which pass through, getting a "no" from the
+	SELinux policy, and spamming the AVC log (#197256).
+	* src/oddjob_dbus.c,src/oddjob_dbus.h: make oddjob_dbus_connection_close
+	globally-callable, because D-Bus 0.90 doesn't provide _disconnect any
+	more.
+	* src/Makefile.am: pull the 'lookup' subdirectory out -- we don't
+	actually use anything in there
+	* configure.ac: don't generate src/lookup/Makefile, comment out tests
+	for LDAP and Kerberos
+
+2006-05-02 nalin
+	tag 0.26-1
+
+2006-05-02 nalin
+	* tests/*/description: add descriptive names for the various tests
+	* tests/006,tests/007,tests/sanity.sh.in: run 'ls' against /proc/self
+	to get more dependable output
+	* tests/014,tests/015,tests/016: add allow/deny tests
+	* src/oddjobd.c(object_has_method): don't get fooled by methods which
+	have ACL entries but no handler
+	* src/oddjobd.c(oddjobd_exec_method): force the exec-errno pipe to be
+	descriptor 3, and send errno down that descriptor if exec() fails.  Set
+	the name of the calling user in the environment.
+	* src/oddjob_dbus.c(oddjob_dbus_filter): check for cases where we
+	have no defined handler
+	* src/common.h: add macros for "unimplemented method" error, and a
+	variable name for the calling user
+	* src/oddjob_request.c: if the user requested introspection data,
+	then always return 0 instead of always returning 255 ("-1")
+	* src/Makefile.am,src/tenx.sh: make sure that eightx.sh and tenx.sh
+	are included in the dist tarballs
+
+2006-04-11 nalin
+	tag 0.25-1
+
+2006-04-11 nalin
+	* src/oddjobd.c(oddjobd_introspect_method): report the right
+	signature for the introspection method.
+
+2006-04-11 nalin
+	* configure.ac,src/oddjob_dbus.c: move the warning about a missing
+	dbus_bus_release_name() into the configure script.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_remove_method): once we find
+	the entry in the array which we want to remove, stop. Don't free the
+	object unless we ran out of interfaces for it to support.
+
+2006-04-10 nalin
+	* scripts/oddjobd.in: switch to the more conventional SIGHUP to force
+	the daemon to reload its configuration
+
+2006-04-10 nalin
+	* src/oddjobd.conf.in: remove introspection ACL entries.
+	* src/make-i11nconf.sh.in: add a script to generate all of the needed
+	introspection ACL entries.
+	* src/oddjobd.conf.5.in: note that oddjobd provides introspection if
+	you allow it in ACLs.
+	* oddjobd.spec: own /etc/oddjobd.conf.d/oddjobd-introspection.conf
+	* src/Makefile.am: use make-i11nconf.sh to generate a useful
+	oddjobd-introspection.conf
+	* src/oddjobd.c(oddjobd_introspect_method): provide a list of objects
+	which have the current object's name as an initial substring and which
+	don't themselves appear to have children.
+	* src/oddjobd.c(object_has_method): add a quick check to see if a given
+	object already has a specified interface/method pair.
+	* src/oddjobd.c(config_add_introspection_methods): add parent objects
+	for all objects we spot, and add introspection method hooks for them
+	as well.
+	* src/oddjobd.c(config_register): fix debug messages so that on startup
+	we see new handler registrations again.
+	* tests/Makefile.am: fix 'distcheck'
+
+2006-04-10 nalin
+	* scripts/oddjobd.in: run "oddjob_request reload" to reload instead of
+	doing a full restart
+
+2006-04-06 nalin
+	* configure.ac: print the version of D-BUS which we're using
+	* src/oddjob_dbus.c: emit a compile-time warning when we're attempting
+	to build against a version which didn't provide a means of unregistering
+	a well-known name
+
+2006-04-05 nalin
+	* src/oddjobd.8.in: note that SIGHUP works now.
+	* src/oddjobd.conf.5.in: add the missing XML document type identifier
+	to the examples.
+	* QUICKSTART: remove notes that oddjobd doesn't do restarts well.
+	* src/mkhomedir.c: add -u and -s flags to override the umask and
+	skeleton directory name, respectively.
+	* TODO: remove graceful reload from the list
+
+2006-04-03 nalin
+	* src/mainloop.c(mainloop_reset_signal_handlers): don't reset SIGHUP.
+	* src/oddjobd.c: add a global flag to mark a pending reload.
+	* src/oddjobd.c(config_contains): rename to config_method() and return
+	the matched method or NULL.
+	* src/oddjobd.c(config_contains): add, wrapping config_method() in a
+	not-equal-to-NULL test.
+	* src/oddjobd.c(oddjobd_reload_configuration): break out of
+	oddjobd_reload_method.
+	* src/oddjobd.c(sighup_handler): add, sets the global pending-reload
+	flag.
+	* src/oddjobd.c(main): if the global pending-reload flag is set during
+	a main loop iteration, reload the configuration and clear the flag.
+
+2006-04-03 nalin
+	* configure.ac: make the names of introspection-related interfaces
+	and methods AC_SUBST variables.
+	* src/oddjob_dbus.c(oddjob_dbus_unbind): wrap the release_name()
+	function, though it wasn't available until 0.60, so we can run into
+	trouble on older versions of D-BUS which didn't provide it.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_free): only remove the filter
+	if it was added.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_remove_method): add.
+	* src/oddjobd.c: make the name of the configuration file a global,
+	because we'll need it after startup has finished.
+	* src/oddjobd.c: add a pointer to the configuration to the service
+	structure.
+	* src/oddjobd.c(check_method_acl): walk up the method to the config
+	structure instead of pulling out the global ACL.
+	* src/oddjobd.c(oddjobd_list_method,oddjobd_introspect_method): walk up
+	the method to the config structure instead of pulling out the global
+	method tree.
+	* src/oddjobd.c(config_add_internal_methods): pull out of main().
+	* src/oddjobd.c(config_add_introspection_methods): pull out of main().
+	* src/oddjobd.c(config_unregister_removed): add.
+	* src/oddjobd.c(config_register): pull out of main().
+	* src/oddjobd.c(config_contains): add.
+	* src/oddjobd.c(oddjobd_reload_method): add.
+	* src/oddjobd.conf.in: allow root to call "reload" by default.
+	* src/util.c(oddjob_resize_array): correctly handle cases where the
+	new requested size is smaller than the current size.
+
+2006-03-31 nalin
+	* src/oddjobd.c(oddjobd_introspect_method): apply ACLs to the
+	Introspection method as well, which is possibly a security fix.
+	* src/oddjobd.c: move config-file based portion of the configuration
+	into a substructure so that eventually we can replace it when we
+	get full reload-config working.
+	* src/oddjobd.c: ignore comment nodes in the configuration file.
+	* src/oddjobd.conf.in: allow root to call the introspection interface
+	by default
+
+2006-02-28 nalin
+	tag 0.24-1
+	* doc/oddjob.xml.in: make use of DocBook 4.4 vs. 4.3 a configurable
+	option (4.4 is better, but not available on FC3).
+	* configure.ac: add a --enable-compat-dtd to skip markup tags which
+	aren't part of DocBook 4.3
+
+2006-02-27 nalin
+	* src/oddjob_dbus.c(message_has_path): dbus_message_has_path was
+	introduced in 0.34, not 0.30.
+	* src/oddjob_dbus.c(oddjob_dbus_connection_close): dbus_connection_close
+	was introduced in 0.34, not 0.30.
+
+2006-01-27 nalin
+	tag 0.23-1
+	* configure.ac: when checking if the message bus supports the
+	GetConnectionSELinuxSecurityContext method, check for the declaration
+	of the "I don't know" error rather than a specific D-BUS version,
+	because that functionality may get backported.
+	* doc/oddjob.xml.in: mention known implementation limits.
+	* src/oddjob_dbus.c(oddjob_dbus_get_selinux_context): handle
+	SERVICE_HAS_NO_OWNER errors as we do NAME_HAS_NO_OWNER.  Verify that
+	we can read byte arrays out of messages with libdbus from 0.22.
+
+2006-01-16 nalin
+	tag 0.22-1
+	* sample/oddjobd-sample.conf.in: fix pkglibexecdir confusion (#176452).
+	* src/oddjob_request.c: add a -I flag to use as a shortcut because I
+	can never remember the introspection interface and method names.
+	* src/oddjob_request.1.in: add docs for the new -I option, which is a
+	shortcut for typing out the introspection interface and method names.
+
+2006-01-09 nalin
+	* COPYING, src/oddjob_dbus.c: update copyright year
+	* TODO: update
+	* configure.ac: explicitly check for a C compiler
+	* doc/oddjob.html: reformat, rebuild
+	* src/oddjob_dbus.c (message_has_path): abstract out, for the sake of
+	versions of libdbus which didn't provide a dbus_message_has_path()
+	function.
+	* src/oddjob_dbus.c (oddjob_dbus_filter): use message_has_path()
+	instead of dbus_message_has_path().  Use older macro names for the
+	local interface and path when building with older libdbus.
+	* src/oddjob_dbus.c (oddjob_dbus_connection_close): add an abstraction
+	to avoid worrying about the _disconnect/_close rename.
+	* src/oddjobd.c (main): don't try to set a reconnect timeout until
+	after we're sure we've actually connected.
+	* src/oddjob_request.c (main): add a -I flag to perform introspection.
+
+2005-12-22 nalin
+	tag 0.21-1
+	* autoversion.in: add, so that configure and the .spec file hopefully
+	don't fall out of sync again.
+	* Makefile.am: compare autoversion with the .spec file version.
+
+2005-12-22 nalin
+	tag 0.20-1
+	* src/pam_oddjob_mkhomedir.8.in: mention the interface name.
+
+2005-12-21 nalin
+	* src/oddjobd.c: if we don't provide methods, pretend there's no such
+	object, in case that might be useful to Bad People.
+
+2005-12-21 nalin
+	tag 0.19-1
+
+2005-12-21 nalin
+	* autogen.maint: turn on some more warnings.
+
+2005-12-21 nalin
+	* configure.ac: add hard-coded definitions for introspection-related
+	names.
+	* src/oddjob_dbus.c(oddjob_dbus_send_introspection_text): add, for
+	sending a reply with just a string (no status code), for the
+	introspection methods.
+	* src/oddjobd.c: add a pile of introspection-related format and constant
+	strings.
+	* src/oddjobd.c(oddjobd_introspect_method): add, for generating
+	introspection data.
+	* src/oddjobd.c(main): hook in the introspection handler for every
+	object registration.
+
+2005-12-21 nalin
+	tag 0.18-1
+
+2005-12-21 nalin
+	* src/mainloop.c,src/mainloop.h(mainloop_reinit): add, doing what
+	mainloop_init() did, because we need to do it for each connection.
+	* src/oddjob_dbus.c: track the bus type and reconnect timeout we were
+	given at startup-time, so that we know how to reconnect later.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_set_reconnect_timeout): let
+	the caller set the reconnect timeout, setting exit-on-disconnect if
+	we're passed 0.
+	* src/oddjob_dbus.c(oddjob_dbus_filter): process "disconnected"
+	signals.  We don't really do anything yet, but someday, maybe.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_new): don't take a reference
+	to the connection -- dbus_bus_get() doesn't return a floating reference
+	the way GObject would, it just returns a plain old reference.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_free): don't free a reference
+	to the connection, just close it.
+	* src/oddjob_dbus.c(oddjob_dbus_listener_reconnect_if_needed): if
+	we're not connected, drop and attempt to reconnect.  If we reconnect,
+	re-register our names, on-disconnect behavior, and our filters.
+	* src/oddjobd.c(main): call reconnect_if_needed before every mainloop
+	iteration.
+	* scripts/oddjobd.in: set the reconnect timeout to 5 minutes.
+	* src/pam_oddjob_mounthomedir.c: add a "don't use this" comment.
+	Seriously, don't use this module.
+	* configure.ac: add hard-coded definitions for reconnect-related
+	timeouts.
+	* src/oddjobd.8.in: add notes about the -t option and restarting.
+	* src/lookup/Makefile.am: include the README in the dist target
+
+2005-12-21 nalin
+	tag 0.17-0
+
+2005-12-20 nalin
+	* oddjob.spec: modify to conform more closely to the Fedora Packaging
+	Guidelines
+	* TODO: add note about needing to gracefully handle message bus restarts
+	* configure.ac: add an ENABLE_EXPERIMENTAL conditional.
+	* src/Makefile.am: make the entire "lookup" subdirectory experimental

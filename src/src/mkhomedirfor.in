@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$1" in
+-*)
+	echo Usage: mkhomedirfor username [...]
+	exit 1
+	;;
+esac
+for user in "$@" ; do
+	dbus-send --system --dest=@NAMESPACE@.oddjob_mkhomedir --print-reply / @NAMESPACE@.oddjob_mkhomedir.mkhomedirfor string:"$user"
+done

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!-- This is an example file, and not a very good one.  Its primary use is
+     in development and testing environments. -->
+
+<oddjobconfig>
+
+  <service name="@NAMESPACE@.oddjob">
+    <object name="@NAMESPACEPATH@/oddjob">
+      <interface name="@NAMESPACE@.oddjob">
+
+        <method name="sanity1">
+          <helper exec="@mypkglibexecdir@/sanity.sh" arguments="1" prepend_user_name="yes" argument_passing_method="stdin"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="sanity2">
+          <helper exec="@mypkglibexecdir@/sanity.sh" arguments="1" prepend_user_name="yes" argument_passing_method="cmdline"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="printenv">
+          <helper exec="@mypkglibexecdir@/printenv.sh" arguments="0"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="exit1">
+          <helper exec="@mypkglibexecdir@/exit1.sh" arguments="0"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="sigint">
+          <helper exec="@mypkglibexecdir@/sigint.sh" arguments="0"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="sleep30">
+          <helper exec="@mypkglibexecdir@/sleep30.sh" arguments="0"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="eightx">
+          <helper exec="@mypkglibexecdir@/eightx.sh" arguments="0"/>
+          <allow user="root"/>
+        </method>
+
+        <method name="ninex">
+          <helper exec="@mypkglibexecdir@/ninex.sh" arguments="0"/>
+          <allow user="root"/>
+        </method>
+
+      </interface>
+    </object>
+  </service>
+</oddjobconfig>

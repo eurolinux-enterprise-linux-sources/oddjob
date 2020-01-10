@@ -1,0 +1,40 @@
+.TH oddjob_request 1 "25 April 2005" "oddjob Manual"
+
+.SH NAME
+oddjob_request
+
+.SH SYNOPSIS
+oddjob_request [-s service] [-o object] [-i interface] [-S] [ [request [arg1 ...]] | -I ]
+
+.SH DESCRIPTION
+The \fIoddjob_request\fR application is a simple \fIoddjob\fR client application
+which can be used to invoke a particular method provided by the \fIoddjobd\fR
+server.
+
+If no request is given as a command-line argument, \fIoddjob_request\fR will
+attempt to invoke the \fIlist\fR method, which should list all methods for
+which the invoking user is authorized.
+
+.SH ARGUMENTS
+.TP
+\fB\-S\fR
+Connect to the session bus instead of the system bus.  This option is primarily
+intended for use in testing.
+\fI@NAMESPACE@.@PACKAGE@\fR.
+.TP
+\fB\-s\fR service
+The object is provided by the named service instead of
+\fI@NAMESPACE@.@PACKAGE@\fR.
+.TP
+\fB\-o\fR object
+Invoke a method on the named object instead of \fI@NAMESPACEPATH@/@PACKAGE@\fR.
+.TP
+\fB\-i\fR interface
+The method is part of the named interface instead of \fI@NAMESPACE@.@PACKAGE@\fR.
+.TP
+\fB\-I\fR
+Default to the method and interface names used for D-Bus introspection.
+.SH SEE ALSO
+\fBoddjob.conf\fR(5)
+\fBoddjobd.conf\fR(5)
+\fBoddjobd\fR(8)

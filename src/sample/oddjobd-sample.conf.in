@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<oddjobconfig>
+  <service name="@NAMESPACE@.@PACKAGE@.sample">
+    <allow user="root"/>
+    <object name="@NAMESPACEPATH@/@PACKAGE@/sample">
+      <interface name="@NAMESPACE@.@PACKAGE@.sample">
+        <method name="sample">
+          <helper exec="@mypkglibexecdir@/@PACKAGE@-sample.sh"
+		  arguments="0"
+		  prepend_user_name="no"/>
+        </method>
+      </interface>
+    </object>
+  </service>
+</oddjobconfig>

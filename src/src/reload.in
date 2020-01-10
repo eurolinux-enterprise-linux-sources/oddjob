@@ -1,0 +1,8 @@
+#!/bin/sh
+case "$1" in
+-*)
+	echo Usage: reload
+	exit 1
+	;;
+esac
+dbus-send --system --dest=@NAMESPACE@.oddjob --print-reply @NAMESPACEPATH@/oddjob @NAMESPACE@.oddjob.reload
