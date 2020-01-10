@@ -3,12 +3,13 @@
 
 Name: oddjob
 Version: 0.30
-Release: 5%{?dist}
+Release: 6%{?dist}
 Source: http://fedorahosted.org/released/oddjob/oddjob-%{version}.tar.gz
 Patch0: oddjob-0.30-noclose.patch
 Patch1: oddjob-0.30-umasks.patch
 Patch2: oddjob-0.30-tests.patch
 Patch3: oddjob-init-status.patch
+Patch4: oddjob-umask.patch
 Summary: A D-Bus service which runs odd jobs on behalf of client applications
 License: BSD
 Group: System Environment/Daemons
@@ -53,6 +54,7 @@ This package contains a trivial sample oddjob service.
 %patch1 -p1 -b .umasks
 %patch2 -p1 -b .tests
 %patch3 -p1 -b .init-status
+%patch4 -p1 -b .umask
 autoreconf -f -i
 
 %build
@@ -169,6 +171,10 @@ fi
 exit 0
 
 %changelog
+* Wed Jan  6 2016 Nalin Dahyabhai <nalin@redhat.com> 0.30-6
+- stop overriding the system-wide UMASK default in our default
+  oddjobd-mkhomedir.conf file (#1150607)
+
 * Thu Feb 24 2011 Nalin Dahyabhai <nalin@redhat.com> 0.30-5
 - signal the system message bus to reload its configuration whenever we
   drop a new configuration file in place for it during package %%post (#678345)
