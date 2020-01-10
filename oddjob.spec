@@ -3,8 +3,12 @@
 
 Name: oddjob
 Version: 0.30
-Release: 1%{?dist}
+Release: 5%{?dist}
 Source: http://fedorahosted.org/released/oddjob/oddjob-%{version}.tar.gz
+Patch0: oddjob-0.30-noclose.patch
+Patch1: oddjob-0.30-umasks.patch
+Patch2: oddjob-0.30-tests.patch
+Patch3: oddjob-init-status.patch
 Summary: A D-Bus service which runs odd jobs on behalf of client applications
 License: BSD
 Group: System Environment/Daemons
@@ -12,7 +16,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: dbus-devel >= 0.22, libselinux-devel, libxml2-devel
 BuildRequires: pam-devel, python-devel, pkgconfig
 BuildRequires: cyrus-sasl-devel, krb5-devel, openldap-devel
-BuildRequires: docbook-dtds, xmlto
+BuildRequires: docbook-dtds, xmlto, autoconf, automake, libtool
 Requires(post): /sbin/service
 Requires(postun): /sbin/service
 Requires(post): /sbin/chkconfig
@@ -45,6 +49,11 @@ This package contains a trivial sample oddjob service.
 
 %prep
 %setup -q
+%patch0 -p1 -b .noclose
+%patch1 -p1 -b .umasks
+%patch2 -p1 -b .tests
+%patch3 -p1 -b .init-status
+autoreconf -f -i
 
 %build
 sample_flag=
@@ -127,6 +136,9 @@ rm -fr "$RPM_BUILD_ROOT"
 %endif
 
 %post
+if test $1 -eq 1 ; then
+	killall -HUP dbus-daemon 2>&1 > /dev/null
+fi
 /sbin/chkconfig --add oddjobd
 
 %postun
@@ -148,12 +160,36 @@ cfg=%{_sysconfdir}/oddjobd.conf.d/oddjobd-mkhomedir.conf
 if grep -q %{_libdir}/%{name}/mkhomedir $cfg ; then
 	sed -i 's^%{_libdir}/%{name}/mkhomedir^%{_libexecdir}/%{name}/mkhomedir^g' $cfg
 fi
+if test $1 -eq 1 ; then
+	killall -HUP dbus-daemon 2>&1 > /dev/null
+fi
 if [ -f /var/lock/subsys/oddjobd ] ; then
 	%{dbus_send} --system --dest=com.redhat.oddjob /com/redhat/oddjob com.redhat.oddjob.reload
 fi
 exit 0
 
 %changelog
+* Thu Feb 24 2011 Nalin Dahyabhai <nalin@redhat.com> 0.30-5
+- signal the system message bus to reload its configuration whenever we
+  drop a new configuration file in place for it during package %%post (#678345)
+
+* Thu Feb 10 2011 Nalin Dahyabhai <nalin@redhat.com> 0.30-4
+- make the init script exit with status 2 when given an unknown command, rather
+  than with status 1 (#674534)
+
+* Tue Jan 25 2011 Nalin Dahyabhai <nalin@redhat.com> 0.30-3
+- correct a build error by regenerating configure (part of #612617)
+
+* Tue Jan 25 2011 Nalin Dahyabhai <nalin@redhat.com> 0.30-2
+- backport patch to stop trying to close a stale connection to the bus,
+  which used to generate a warning from libdbus, but which now causes an
+  assertion failure (#634356)
+- when creating home directories, default to the UMASK setting from
+  /etc/login.defs (part of #659681) and ensure the execute bit is set
+  on any intermediate directories we create (the rest of #659681)
+- make sure the test helper has consistent permissions and make sure our
+  self-tests verify them (#612617)
+
 * Wed Jan 27 2010 Nalin Dahyabhai <nalin@redhat.com> 0.30-1
 - drop the shared library and python bindings, which so far as i can tell
   weren't being used, obsoleting them to avoid a mess on upgrades

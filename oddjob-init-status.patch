@@ -1,0 +1,19 @@
+commit 8307ea09aa4b29838ac62b7ceaf576dadc0689af
+Author: Nalin Dahyabhai <nalin@redhat.com>
+Date:   Tue Feb 8 13:17:43 2011 -0500
+
+    - make the init script exit with status 2 when given an unknown command, rather than with status 1 (#674534)
+
+diff --git a/scripts/oddjobd.in b/scripts/oddjobd.in
+index 6f8e23c..222cb3b 100644
+--- a/scripts/oddjobd.in
++++ b/scripts/oddjobd.in
+@@ -100,7 +100,7 @@ case "$1" in
+ 	;;
+   *)
+ 	echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|reload|force-reload|status}"
+-	exit 1
++	exit 2
+ esac
+ 
+ exit $RETVAL

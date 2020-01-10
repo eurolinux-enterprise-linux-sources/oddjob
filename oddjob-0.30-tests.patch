@@ -1,0 +1,81 @@
+Test suite and documentation fixes.
+
+diff --git a/configure.ac b/configure.ac
+index 38e578d..e0af7ef 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -36,6 +36,12 @@ AC_DEFINE_UNQUOTED(ODDJOB_DBUS_MINOR_VERSION,$DBUS_MINOR_VERSION,[Define to the
+ AC_DEFINE_UNQUOTED(ODDJOB_DBUS_MICRO_VERSION,$DBUS_MICRO_VERSION,[Define to the micro version of D-BUS with which oddjob is being compiled.])
+ AC_DEFINE_UNQUOTED(DBUS_API_SUBJECT_TO_CHANGE,"Then finish it!",[Define to allow use of DBus development versions.])
+ 
++DBUS_INTERFACE_DBUS=org.freedesktop.DBus
++DBUS_INTROSPECTION_INTERFACE=${DBUS_INTERFACE_DBUS}.Introspectable
++DBUS_INTROSPECTION_METHOD=Introspect
++AC_SUBST(DBUS_INTROSPECTION_INTERFACE)
++AC_SUBST(DBUS_INTROSPECTION_METHOD)
++
+ pam=yes
+ AC_CHECK_HEADERS(security/pam_modules.h)
+ savedLIBS="$LIBS"
+@@ -340,6 +346,7 @@ AC_CONFIG_COMMANDS(src/mkhomedirfor+x,[chmod +x src/mkhomedirfor])
+ AC_CONFIG_COMMANDS(src/mkmyhomedir+x,[chmod +x src/mkmyhomedir])
+ AC_CONFIG_COMMANDS(src/reload+x,[chmod +x src/reload])
+ AC_CONFIG_COMMANDS(scripts/oddjobd+x,[chmod +x scripts/oddjobd])
++AC_CONFIG_COMMANDS(tests/sanity.sh+x,[chmod a+rx,u+w,go-w tests/sanity.sh])
+ 
+ AC_OUTPUT([
+ Makefile
+diff --git a/src/oddjob_request.1.in b/src/oddjob_request.1.in
+index 849dd7a..ed00726 100644
+--- a/src/oddjob_request.1.in
++++ b/src/oddjob_request.1.in
+@@ -33,7 +33,9 @@ Invoke a method on the named object instead of \fI@NAMESPACEPATH@/@PACKAGE@\fR.
+ The method is part of the named interface instead of \fI@NAMESPACE@.@PACKAGE@\fR.
+ .TP
+ \fB\-I\fR
+-Default to the method and interface names used for D-Bus introspection.
++Default to the method and interface names used for D-Bus introspection
++(\fI@DBUS_INTROSPECTION_METHOD@\fR and \fI@DBUS_INTROSPECTION_INTERFACE@\fR,
++respectively).
+ .SH SEE ALSO
+ \fBoddjob.conf\fR(5)
+ \fBoddjobd.conf\fR(5)
+diff --git a/src/oddjobd.conf.5.in b/src/oddjobd.conf.5.in
+index b8d2ac0..53e4650 100644
+--- a/src/oddjobd.conf.5.in
++++ b/src/oddjobd.conf.5.in
+@@ -46,7 +46,7 @@ denied.
+ The \fIoddjobd\fR server will automatically supply information used by the
+ D-Bus introspection mechanism on behalf of your objects, but only if the
+ client which is requesting the information is allowed to invoke the
+-\fI@DBUS_INTROSPECTION_METHOD@\R method of the
++\fI@DBUS_INTROSPECTION_METHOD@\fR method of the
+ \fI@DBUS_INTROSPECTION_INTERFACE@\fR interface provided by the object.
+ 
+ The configuration file may also indicate that the contents of other files
+diff --git a/tests/006/expected_stdout.in b/tests/006/expected_stdout.in
+index fb7abe9..54e0a2b 100644
+--- a/tests/006/expected_stdout.in
++++ b/tests/006/expected_stdout.in
+@@ -13,7 +13,7 @@ lr-x------ symbolic link             /proc/$$/fd/255
+ prw------- fifo                      /proc/$$/fd/0
+ prw------- fifo                      /proc/$$/fd/1
+ prw------- fifo                      /proc/$$/fd/2
+--rwxrwxr-x regular file              /proc/$$/fd/255
++-rwxr-xr-x regular file              /proc/$$/fd/255
+ [echo $*]
+ 
+ [echo `cat`]
+diff --git a/tests/007/expected_stdout.in b/tests/007/expected_stdout.in
+index e839767..9be6f49 100644
+--- a/tests/007/expected_stdout.in
++++ b/tests/007/expected_stdout.in
+@@ -13,7 +13,7 @@ lr-x------ symbolic link             /proc/$$/fd/255
+ prw------- fifo                      /proc/$$/fd/0
+ prw------- fifo                      /proc/$$/fd/1
+ prw------- fifo                      /proc/$$/fd/2
+--rwxrwxr-x regular file              /proc/$$/fd/255
++-rwxr-xr-x regular file              /proc/$$/fd/255
+ [echo $*]
+ @currentuser@ foo
+ [echo `cat`]
