@@ -1,0 +1,50 @@
+#!/bin/sh
+cat << EOF
+<?xml version="1.0"?>
+
+<!-- This configuration file allows introspection of the services provided by
+     the oddjobd daemon itself by the root user.  In order for an object to be
+     introspectable, all of the objects in its object path must be as well. -->
+
+<oddjobconfig>
+
+  <service name="@NAMESPACE@.@PACKAGE@">
+
+    <object name="/">
+
+      <interface name="org.freedesktop.DBus.Introspectable">
+
+        <allow min_uid="0" max_uid="0"/>
+        <!-- <method name="Introspect"/> -->
+
+      </interface>
+
+    </object>
+
+EOF
+oddjobd=@NAMESPACEPATH@/@PACKAGE_NAME@
+partial=/
+for part in `echo "$oddjobd" | sed s,/,\ ,g`; do
+	partial=`echo "$partial"/"$part" | sed s,//,/,g`
+cat << EOF
+    <object name="$partial">
+
+      <interface name="org.freedesktop.DBus.Introspectable">
+
+        <allow min_uid="0" max_uid="0"/>
+        <!-- <method name="Introspect"/> -->
+
+      </interface>
+
+    </object>
+
+EOF
+	if test "$partial" = "$oddjobd" ; then
+		break
+	fi
+done
+cat << EOF
+  </service>
+
+</oddjobconfig>
+EOF

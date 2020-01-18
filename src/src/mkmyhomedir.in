@@ -1,0 +1,8 @@
+#!/bin/sh
+case "$1" in
+-*)
+	echo Usage: mkmyhomedir
+	exit 1
+	;;
+esac
+dbus-send --system --dest=@NAMESPACE@.oddjob_mkhomedir --print-reply / @NAMESPACE@.oddjob_mkhomedir.mkmyhomedir

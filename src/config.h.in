@@ -1,0 +1,191 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to the directory in which shared data is stored. */
+#undef DATADIR
+
+/* Define to allow use of DBus development versions. */
+#undef DBUS_API_SUBJECT_TO_CHANGE
+
+/* Define to the package name for D-BUS. */
+#undef DBUS_PACKAGE
+
+/* Define to the number of times oddjobd will attempt a "fast reconnect",
+   before switching to waiting for the full reconnect timeout between
+   attempts. */
+#undef DEFAULT_FAST_RECONNECT_ATTEMPTS
+
+/* Define to the default amount of time which oddjobd will pause between
+   attempts to reconnect to the system message bus after being disconnected
+   for any reason. */
+#undef DEFAULT_FAST_RECONNECT_TIMEOUT
+
+/* Define to the default amount of time which oddjobd will pause between
+   attempts to reconnect to the system message bus after being disconnected
+   for any reason. */
+#undef DEFAULT_RECONNECT_TIMEOUT
+
+/* Define to 1 if you have the <com_err.h> header file. */
+#undef HAVE_COM_ERR_H
+
+/* Define to 1 if you have the `dbus_bus_release_name' function. */
+#undef HAVE_DBUS_BUS_RELEASE_NAME
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <et/com_err.h> header file. */
+#undef HAVE_ET_COM_ERR_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <ldap.h> header file. */
+#undef HAVE_LDAP_H
+
+/* Define to 1 if you have the `ldap' library (-lldap). */
+#undef HAVE_LIBLDAP
+
+/* Define to 1 if you have the `pam' library (-lpam). */
+#undef HAVE_LIBPAM
+
+/* Define to 1 if you have the `sasl2' library (-lsasl2). */
+#undef HAVE_LIBSASL2
+
+/* Define to 1 if you have the `selinux' library (-lselinux). */
+#undef HAVE_LIBSELINUX
+
+/* Define to 1 if you have the `matchpathcon_init' function. */
+#undef HAVE_MATCHPATHCON_INIT
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `pam_get_item' function. */
+#undef HAVE_PAM_GET_ITEM
+
+/* Define to 1 if you have the `pam_get_user' function. */
+#undef HAVE_PAM_GET_USER
+
+/* Define to 1 if you have the <sasl/sasl.h> header file. */
+#undef HAVE_SASL_SASL_H
+
+/* Define to 1 if you have the <security/pam_modules.h> header file. */
+#undef HAVE_SECURITY_PAM_MODULES_H
+
+/* Define to 1 if you have the <selinux/selinux.h> header file. */
+#undef HAVE_SELINUX_SELINUX_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to the directory in which local state information is stored. */
+#undef LOCALSTATEDIR
+
+/* Define to the directory in which local lock information is kept. */
+#undef LOCKDIR
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Define to the major version of D-BUS with which oddjob is being compiled.
+   */
+#undef ODDJOB_DBUS_MAJOR_VERSION
+
+/* Define to the micro version of D-BUS with which oddjob is being compiled.
+   */
+#undef ODDJOB_DBUS_MICRO_VERSION
+
+/* Define to the minor version of D-BUS with which oddjob is being compiled.
+   */
+#undef ODDJOB_DBUS_MINOR_VERSION
+
+/* Define to the namespace in which the oddjob service resides. */
+#undef ODDJOB_NAMESPACE
+
+/* Define to the prefix of the object paths used by oddjob. */
+#undef ODDJOB_NAMESPACE_PATH
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the package name, in caps. */
+#undef PACKAGE_NAME_CAPS
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to the path to the "mount" command. */
+#undef PATH_MOUNT
+
+/* Define to the path to the "umount" command. */
+#undef PATH_UMOUNT
+
+/* Define to a directory in which oddjobd can find some of its helpers. */
+#undef PKGLIBDIR
+
+/* Define to a directory in which oddjobd can find some of its helpers. */
+#undef PKGLIBEXECDIR
+
+/* Define if you want SELinux ACL support in oddjobd. */
+#undef SELINUX_ACLS
+
+/* Define to build SELinux label-aware helpers. */
+#undef SELINUX_LABELS
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to the directory in which oddjobd can find its configuration file.
+   */
+#undef SYSCONFDIR
+
+/* Version number of package */
+#undef VERSION
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Use GNU libc extensions. */
+#undef _GNU_SOURCE
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES

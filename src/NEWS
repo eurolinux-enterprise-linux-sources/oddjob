@@ -1,0 +1,16 @@
+0.31.3 - Fix use of incorrectly-named facilities in the LSB header in the
+         init script.
+         Provide systemd configuration files.
+         Some internal plumbing to possibly emit signals in addition to
+	 reply messages in the future.
+0.31.2 - Notice when we fail to register a name with the message bus.
+0.31.1 - Tweak init script exit status when given an unrecognized command.
+0.31   - Set permissions on intermediate directories correctly when the
+         mkhomedir helper has to create some, using values from /etc/login.defs
+         when no default umask is specified.
+0.30.1 - Preprocess the man pages correctly so that mentions of the
+         introspection interface and method names are correctly resolved to
+	 their actual values.
+0.30   - Drops the liboddjob wrapper library and python binding, which I don't
+	 think anyone has been using.  (If you need either of these, I can add
+	 them back.)

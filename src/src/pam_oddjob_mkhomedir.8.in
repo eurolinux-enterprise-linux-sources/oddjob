@@ -1,0 +1,34 @@
+.TH pam_oddjob_mkhomedir 8 "29 May 2008" "oddjob Manual"
+
+.SH NAME
+pam_oddjob_mkhomedir.so - PAM module to create users home directory via oddjob
+
+.SH SYNOPSIS
+session optional /lib/security/pam_oddjob_mkhomedir.so
+
+.SH DESCRIPTION
+The \fIpam_oddjob_mkhomedir.so\fR module checks if the user's home directory
+exists, and if it does not, it invokes the \fImkhomedirfor\fR
+method of the \fI@NAMESPACE@.oddjob_mkhomedir\fR service for the \fBPAM_USER\fR
+if the module is running with superuser privileges.  Otherwise, it invokes the
+\fImkmyhomedir\fR method.
+
+The location of the skeleton directory and the default umask are determined by
+the configuration for the corresponding service in \fBoddjobd-mkhomedir.conf\fR,
+so they can not be specified as arguments to this module.
+
+If \fID-Bus\fR has not been configured to allow the calling application to
+invoke these methods provided as part of the \fI@NAMESPACE@.oddjob_mkhomedir\fR
+interface of the \fI/\fR object provided by the
+\fI@NAMESPACE@.oddjob_mkhomedir\fR service, then \fIoddjobd\fR will not receive
+the request and an error will be returned by \fID-Bus\fR.
+
+If \fIoddjobd\fR has not been configured to provide these methods, or the
+user is not authorized to use them, then \fIoddjobd\fR will ignore the
+module's requests.
+
+.SH SEE ALSO
+\fBoddjob_request\fR(1)
+\fBoddjob.conf\fR(5)
+\fBoddjobd.conf\fR(5)
+\fBoddjobd\fR(8)

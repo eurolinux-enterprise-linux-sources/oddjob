@@ -1,0 +1,1 @@
+-s com.redhat.oddjob.bogus -o /com/redhat/oddjob/bogus -i com.redhat.oddjob.bogus bogus

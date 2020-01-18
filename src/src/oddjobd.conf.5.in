@@ -1,0 +1,122 @@
+.TH oddjobd.conf 5 "5 April 2006" "oddjob Manual"
+
+.SH NAME
+oddjobd.conf - configuration for oddjobd
+
+.SH DESCRIPTION
+The \fB@mysysconfdir@/oddjobd.conf\fR configuration file specifies which
+services the \fIoddjobd\fR server provides over the D-Bus, and authorization
+rules which are enforced in addition to those enforced by the system message
+bus.
+
+The configuration file is an XML document.  The top-level element type is
+\fI<oddjobconfig>\fR, which contains one or more \fI<service>\fR elements.
+Each \fI<service>\fR describes a service which will be provided on the
+system-wide message bus.
+
+Each \fI<object>\fR describes an object path which will will be recognized by
+the specified service.  The object path may include wildcards, in which case
+any call to an object with a path name which matches the specified path will be
+accepted.  An object contains one or more \fI<interface>\fR elements, each of
+which describes a group of methods described in \fI<method>\fP elements.
+
+Each \fI<method>\fR element must specify the method name as a value for its
+\fIname\fR attribute and may include a \fI<helper\fR> element which the name of
+an executable to run as its \fIexec\fR attribute and the number of arguments
+which will be passed to the helper as its \fIargument\fR attribute.  A
+\fI<helper>\fR may also include attributes indicating whether or not the
+invoking user's name should be prepended to that argument list, and whether
+that argument list should be passed in to the helper via stdin (the default) or
+on its command line.
+
+Each \fI<oddjobconfig>\fR, \fI<service>\fR, \fI<object>\fR, \fI<interface>\fR,
+or \fI<method>\fR element may also include authorization elements \fI<allow>\fR
+and \fI<deny>\fR.  Each \fI<allow>\fR or \fI<deny>\fR rule specifies some
+combination of a user name and/or a UID range which the invoking user must
+match for the rule to apply.
+@SELINUX_ACLS_MAN_SPECIFIC@A rule can also specify the caller's SELinux context,
+@SELINUX_ACLS_MAN_SPECIFIC@user, role, or execution domain, and be applied or
+@SELINUX_ACLS_MAN_SPECIFIC@not based on whether or not policy is being enforced.
+All \fI<deny>\fR rules for the method are checked first, followed by all of its
+\fI<allow>\fR rules.  If no matches are found, the \fI<deny>\fR rules for the
+containing \fI<interface>\fR element are checked, followed by its \fI<allow>\fP
+rules, and so on.  If all ACLs are searched and no matches turn up, access is
+denied.
+
+The \fIoddjobd\fR server will automatically supply information used by the
+D-Bus introspection mechanism on behalf of your objects, but only if the
+client which is requesting the information is allowed to invoke the
+\fI@DBUS_INTROSPECTION_METHOD@\fR method of the
+\fI@DBUS_INTROSPECTION_INTERFACE@\fR interface provided by the object.
+
+The configuration file may also indicate that the contents of other files
+should be read by the configuration parser, using an \fI<include>\fR element.
+
+.SH EXAMPLES
+
+Here is an example file:
+ <?xml version="1.0"?>
+ <oddjobconfig/>
+
+Another:
+ <?xml version="1.0"?>
+ <oddjobconfig>
+  <allow user="wally"/>
+  <service name="@NAMESPACE@.@PACKAGE@">
+   <allow user="polly"/>
+   <object name="@NAMESPACEPATH@/@PACKAGE@">
+    <allow user="holly"/>
+    <interface name="@NAMESPACE@.@PACKAGE@">
+     <allow user="bob"/>
+     <method name="pwd">
+      <helper exec="/bin/pwd" argument_count="0" prepend_user_name="no"/>
+      <allow user="jimmy"/>
+      <allow user="billy"/>
+      <allow min_uid="0" max_uid="1000"/>
+     </method>
+     <method name="reboot">
+      <helper exec="/sbin/reboot" argument_count="0"/>
+     </method>
+    </interface>
+    <interface name="@DBUS_INTROSPECTION_INTERFACE@">
+     <allow min_uid="0" max_uid="0"/>
+    </interface>
+   </object>
+  </service>
+  <include ignore_missing="yes">/etc/oddjobd-local.conf</include>
+  <include ignore_missing="yes">/etc/oddjobd.conf.d/*.conf</include>
+ </oddjobconfig>
+
+And another:
+ <?xml version="1.0"?>
+ <oddjobconfig>
+  <service name="com.example.management">
+   <object name="/com/example/power">
+    <interface name="com.example.shutdown">
+     <method name="reboot">
+      <allow user="root"/>
+      <helper exec="/sbin/reboot" argument_count="0"/>
+     </method>
+    </interface>
+    <interface name="@DBUS_INTROSPECTION_INTERFACE@">
+     <allow min_uid="0" max_uid="0"/>
+    </interface>
+   </object>
+   <object name="/com/example/power">
+    <interface name="com.example.shutdown">
+     <method name="poweroff">
+      <allow user="root"/>
+      <helper exec="/sbin/poweroff" argument_count="0"/>
+     </method>
+    </interface>
+    <interface name="@DBUS_INTROSPECTION_INTERFACE@">
+     <allow min_uid="0" max_uid="0"/>
+    </interface>
+   </object>
+  </service>
+ </oddjobconfig>
+
+.SH SEE ALSO
+\fBoddjob_request\fR(1)
+\fBoddjob.conf\fR(5)
+\fBoddjobd\fR(8)

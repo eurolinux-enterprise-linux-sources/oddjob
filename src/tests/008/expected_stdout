@@ -1,0 +1,5 @@
+ODDJOB_CALLING_USER="nalin"
+ODDJOB_INTERFACE_NAME="com.redhat.oddjob.test"
+ODDJOB_METHOD_NAME="printenv"
+ODDJOB_OBJECT_PATH="/"
+ODDJOB_SERVICE_NAME="com.redhat.oddjob.test"

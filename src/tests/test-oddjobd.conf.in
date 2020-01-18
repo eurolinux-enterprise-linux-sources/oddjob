@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<oddjobconfig>
+  <service name="com.redhat.oddjob">
+    <object name="/com/redhat/oddjob">
+      <interface name="com.redhat.oddjob">
+        <method name="list">
+	  <allow user="*"/>
+	</method>
+        <method name="quit">
+	  <allow user="@currentuser@"/>
+	</method>
+      </interface>
+    </object>
+  </service>
+  <service name="com.redhat.oddjob.test">
+    <object name="/">
+      <interface name="com.redhat.oddjob.test">
+        <method name="sanity1">
+          <helper exec="@abs_builddir@/sanity.sh" arguments="1" prepend_user_name="yes" argument_passing_method="stdin"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="sanity2">
+          <helper exec="@abs_builddir@/sanity.sh" arguments="1" prepend_user_name="yes" argument_passing_method="cmdline"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="printenv">
+          <helper exec="@abs_builddir@/printenv.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="exit1">
+          <helper exec="@abs_srcdir@/../src/exit1.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="sigint">
+          <helper exec="@abs_srcdir@/../src/sigint.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="sleep30">
+          <helper exec="@abs_srcdir@/../src/sleep30.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="eightx">
+          <helper exec="@abs_srcdir@/../src/eightx.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="ninex">
+          <helper exec="@abs_srcdir@/../src/ninex.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="tenx">
+          <helper exec="@abs_srcdir@/../src/tenx.sh" arguments="0"/>
+        </method>
+        <method name="elevenx">
+          <helper exec="@abs_srcdir@/../src/tenx.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+          <deny user="@currentuser@"/>
+        </method>
+        <method name="twelvex">
+          <helper exec="@abs_srcdir@/../src/tenx.sh" arguments="0"/>
+          <allow user="@currentuser@"/>
+        </method>
+        <method name="thirteenx">
+          <helper exec="@abs_srcdir@/../src/tenx.sh" arguments="0"/>
+          <deny user="@currentuser@"/>
+        </method>
+      </interface>
+      <interface name="org.freedesktop.DBus.Introspectable">
+        <method name="Introspect">
+	  <allow user="*"/>
+	</method>
+      </interface>
+    </object>
+  </service>
+</oddjobconfig>

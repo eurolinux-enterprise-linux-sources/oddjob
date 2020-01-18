@@ -1,0 +1,15 @@
+.TH oddjob-mkhomedir.conf 5 "30 July 2013" "oddjob @PACKAGE_VERSION@" "oddjob Manual"
+
+.SH NAME
+oddjob-mkhomedir.conf - system message bus configuration for oddjob-mkhomedir
+
+.SH DESCRIPTION
+The @mysysconfdir@/@DBUS_PACKAGE@/system.d/\fIoddjob-mkhomedir.conf\fR
+configuration file specifies D-Bus-level access controls for the
+\fI@NAMESPACE@.oddjob_mkhomedir\fR service, in particular which users can
+invoke methods provided by the service.  For more information, please see the
+D-Bus documentation.
+
+.SH SEE ALSO
+\fBdbus-daemon\fR(1)
+\fBoddjobd\fR(8)

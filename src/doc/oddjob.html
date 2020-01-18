@@ -1,0 +1,358 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>oddjob: Threat or Menace?</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><meta name="description" content="The oddjob package provides a means for unprivileged applications to invoke and take limited control of privileged applications by issuing requests using the D-Bus system message bus."></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div lang="en" class="article" title="oddjob: Threat or Menace?"><div class="titlepage"><div><div><h2 class="title"><a name="oddjob"></a><span class="package">oddjob</span>: Threat or
+	Menace?</h2></div><div><div class="author"><h3 class="author"><span class="firstname">Nalin</span> <span class="surname">Dahyabhai</span></h3><div class="affiliation"><span class="orgname">Red Hat, Inc.<br></span></div><code class="email">&lt;<a class="email" href="mailto:nalin@redhat.com">nalin@redhat.com</a>&gt;</code></div></div><div><p class="copyright">Copyright © 2005,2006,2007,2008 Red Hat, Inc.</p></div><div><div class="abstract" title="Abstract"><p class="title"><b>Abstract</b></p><p>
+	The <span class="package">oddjob</span> package provides
+	a means for unprivileged applications to invoke and take limited
+	control of privileged applications by issuing requests using the
+	<span class="package">D-Bus</span> system message bus.
+	</p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#id415091">Background</a></span></dt><dt><span class="section"><a href="#id382418">oddjob</a></span></dt><dt><span class="section"><a href="#id417478">An Example</a></span></dt><dd><dl><dt><span class="section"><a href="#id417524"><span class="package">D-Bus</span>
+		Configuration</a></span></dt><dt><span class="section"><a href="#id417569"><span class="command"><strong>oddjobd</strong></span> Configuration</a></span></dt></dl></dd><dt><span class="section"><a href="#id382194">Configuring <span class="command"><strong>oddjobd</strong></span></a></span></dt><dt><span class="section"><a href="#id427012">Built-in Methods</a></span></dt><dt><span class="section"><a href="#id427065">Implementation Limits</a></span></dt></dl></div><div class="section" title="Background"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id415091"></a>Background</h2></div></div></div><p>
+	In many applications, particularly those which perform some sort of
+	administrative task, it becomes useful to separate the presentation
+	(which needn't have any special privileges, and frequently shouldn't)
+	from the logic which actually performs the task (which frequently
+	needs privileges).
+	</p><p>
+	In these situations, the unprivileged application typically
+	accomplishes the privileged task either by running a setuid helper
+	application or by connecting to a long-running process and issuing a
+	request.
+	</p><p>
+	Of the two options, the setuid helper approach offers the advantage of
+	requiring less configuration beforehand, but can be undesirable in the
+	context of libraries or demand-loaded modules, when the direct caller
+	may be unaware of the state of the calling application with regard to
+	signal handling, which must be taken into account if the caller
+	expects to wait for the privileged child process to complete its task.
+	Additionally, certain attributes of the unprivileged process which are
+	inherited by the privileged helper (current directory, other open file
+	handles, environment variables) may be manipulated to become vectors
+	for attack by malicious users.
+	</p><p>
+	The alternative, the use of a long-running process which services
+	these requests, becomes attractive for these reasons.  The primary
+	objections to this approach are frequently:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>that it adds yet another long-running
+	resource-consuming process to the system</p></li><li class="listitem"><p>that the long-running process must be installed
+	properly to ensure that it is started and stopped at system boot and
+	shutdown</p></li><li class="listitem"><p>an entire protocol for encoding communications between
+	the client and server must be invented</p></li></ul></div><p>
+	A third option has recently become available: the <a class="ulink" href="http://freedesktop.org/wiki/Software_2fdbus" target="_top"> <em class="citetitle"><span class="package">D-Bus</span></em></a>
+	system message bus.  The system message bus provides an interprocess
+	communication mechanism to processes on the system.  The bus carries
+	three types of messages:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="emphasis"><em>events</em></span>, which are broadcast and
+	for which no response is expected</p></li><li class="listitem"><p><span class="emphasis"><em>method calls</em></span>, which are unicast
+	and for which a response is usually expected</p></li><li class="listitem"><p><span class="emphasis"><em>method responses</em></span>, which are
+	unicast and which are sent in response to a <span class="emphasis"><em>method
+	call</em></span></p></li></ul></div><p>
+	Method call and response messages which are sent over the system
+	message bus provide a loosely coupled object-oriented RPC mechanism.
+	</p><p>
+	The <span class="package">D-Bus</span> libraries also
+	provide a means of encoding, transmitting, listening for, receiving,
+	and parsing messages which are sent over the bus.  Using
+	<span class="package">D-Bus</span> as the mechanism for
+	a long-running process reduces the time required to implement both a
+	long-running server and its clients.  Because the implementation of the
+	bus protocols is designed to be reused, it also offers the opportunity
+	to have one privileged process service a potentially large number of
+	clients.
+	</p><p>
+	The <span class="package">oddjob</span> package
+	implements such a server.
+	</p></div><div class="section" title="oddjob"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id382418"></a>oddjob</h2></div></div></div><p>
+	The server provided by
+	<span class="package">oddjob</span>,
+	<span class="command"><strong>oddjobd</strong></span>, provides services which appear to be
+	indistinguishable from other services provided through
+	<span class="package">D-Bus</span>, but in an
+	unconventional manner.  Before continuing, it is instructive to look at
+	how clients and servers interact over the bus.
+	</p><p>
+	The fundamental unit of communication over the system bus is the
+	<span class="emphasis"><em>message</em></span>.  For practical purposes, a message is
+	composed of the addressing information which is needed to route that
+	message to the proper recipient, and one of:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>information about the event being broadcast (the
+	sender, additional information)</p></li><li class="listitem"><p>the method being called (the caller, the provider,
+	method arguments)</p></li><li class="listitem"><p>the method being responded to (the caller, the
+	provider, results)</p></li></ul></div><p>
+	</p><p>
+	More specifically, each message includes the address of its sender.
+	Method call and response messages should also include the address of
+	the intended recipient.  A bus address uniquely identifies a process
+	which is connected to the message bus.  Generally, a single process
+	will have exactly one open connection to the message bus.
+	</p><p>
+	A message also includes an <span class="emphasis"><em>object path</em></span>, which
+	allows multiple client sessions to be serviced by the same server.
+	Each object can provide multiple <span class="emphasis"><em>interface</em></span>s,
+	which are groups of related <span class="emphasis"><em>methods</em></span>.
+	</p><p>
+	The function of the <span class="command"><strong>oddjobd</strong></span> daemon is to allow
+	arbitrary services to be provided over the message bus with a minimum
+	of "glue".  Services provided by
+	<span class="command"><strong>oddjobd</strong></span> can be implemented very simply.  This
+	simplicity of implementation is gained at the cost of some robustness,
+	but for certain applications this is an acceptable tradeoff.
+	</p><p>
+	An analogous comparison can be made between applications which are
+	implemented on web servers using scripting engines and applications
+	which are implemented using the Common Gateway Interface
+	(<acronym class="acronym">CGI</acronym>).
+	</p></div><div class="section" title="An Example"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id417478"></a>An Example</h2></div></div></div><p>
+	Take for example, a service which is provided by the well-known
+	address "com.example.system_manager".  This management service
+	controls multiple systems, each of which is represented as a different
+	object with a name of the form
+	"/com/example/Systems/server1".  Each
+	object offers multiple interfaces, such as the
+	"<span class="interface">com.example.power</span>" interface, which
+	provides methods such as "<code class="methodname">reboot</code>"
+	and "<code class="methodname">poweroff</code>".
+	</p><p>
+	Conventionally, the implementation of the
+	"com.example.system_manager" service would require a
+	long-running server process which would need to include logic for
+	connecting to the system message bus, receiving requests, and issuing
+	replies, in addition to its core functionality.
+	</p><p>
+	Using <span class="command"><strong>oddjobd</strong></span>, the entire implementation can be
+	synthesized by providing the proper configuration files and shell
+	scripts.
+	</p><div class="section" title="D-Bus Configuration"><div class="titlepage"><div><div><h3 class="title"><a name="id417524"></a><span class="package">D-Bus</span>
+		Configuration</h3></div></div></div><p>
+		The <span class="package">D-Bus</span> system
+		bus enforces restrictions on which applications can reserve
+		well-known bus addresses.  It bases this restriction on the UID
+		under which a client process is executing when it requests the
+		reservation.  Additionally, the system message bus can impose
+		access controls on the ability to send or receive messages to
+		or from a particular service/object/interface/method set using
+		the bus.  This example allows processes running as
+		"root" to reserve the name
+		"com.example.system_manager", and allows any user to
+		call its <code class="methodname">reboot</code> and
+		<code class="methodname">poweroff</code> methods.
+		</p><div class="tip" title="Tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>The message bus daemon itself has
+		no specific use for object paths and interface and method names
+		beyond allowing their use in access control statements.  It is
+		your application which gives the names their
+		meanings.</p></div><p>
+		</p><pre class="programlisting">&lt;!DOCTYPE busconfig PUBLIC
+	  "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+	  "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd"&gt;
+
+&lt;busconfig&gt;
+
+	&lt;!-- Only root can own the system manager service. --&gt;
+	&lt;policy user="root"&gt;
+		&lt;allow own="com.example.system_manager"&gt;
+	&lt;/policy&gt;
+
+	&lt;!-- Allow anyone to call the reboot and poweroff
+	     methods.  This is probably a bad idea. --&gt;
+	&lt;policy context="default"&gt;
+		&lt;allow send_destination="com.example.system_manager"
+		       send_path="/com/example/Systems/server1"
+		       send_interface="com.example.power"
+		       send_member="reboot"/&gt;
+		&lt;allow send_destination="com.example.system_manager"
+		       send_path="/com/example/Systems/server1"
+		       send_interface="com.example.power"
+		       send_member="poweroff"/&gt;
+	&lt;/policy&gt;
+
+&lt;/busconfig&gt;</pre><p>
+		</p></div><div class="section" title="oddjobd Configuration"><div class="titlepage"><div><div><h3 class="title"><a name="id417569"></a><span class="command"><strong>oddjobd</strong></span> Configuration</h3></div></div></div><p>
+		The <span class="command"><strong>oddjobd</strong></span> daemon provides services which
+		are implemented by external helper applications.  The helpers
+		are executed with superuser privileges, and receive their
+		arguments as strings, as the configuration dictates, either as
+		command-line parameters or via stdin.  The exit status of the
+		helpers, along with any text they print, is returned to the
+		caller.  This example configures <span class="command"><strong>oddjobd</strong></span> to
+		provide a "com.example.system_manager" service which
+		provides a "/com/example/Systems/server1" object
+		which implements the
+		"<span class="interface">com.example.power</span>" interface,
+		which provides methods named
+		"<code class="methodname">reboot</code>" and
+		"<code class="methodname">poweroff</code>", and allows the
+		superuser to invoke either method.
+		</p><pre class="programlisting">&lt;?xml version="1.0"?&gt;
+&lt;oddjobconfig&gt;
+	&lt;service name="com.example.system_manager"&gt;
+		&lt;object name="/com/example/Systems/server1"&gt;
+			&lt;interface name="com.example.power"&gt;
+				&lt;method name="reboot"&gt;
+					&lt;helper exec="/sbin/reboot"
+						arguments="0"
+						prepend_user_name="no"/&gt;
+					&lt;!-- Only root and jimbo can use this --&gt;
+					&lt;allow user="root"/&gt;
+					&lt;allow user="jimbo"/&gt;
+				&lt;/method&gt;
+				&lt;method name="poweroff"&gt;
+					&lt;helper exec="/sbin/poweroff"
+						arguments="0"
+						prepend_user_name="no"/&gt;
+					&lt;!-- Only root and jimbo can use this --&gt;
+					&lt;allow user="root"/&gt;
+					&lt;allow user="jimbo"/&gt;
+				&lt;/method&gt;
+			&lt;/interface&gt;
+		&lt;/object&gt;
+	&lt;/service&gt;
+&lt;/oddjobconfig&gt;</pre><p>
+		</p></div></div><div class="section" title="Configuring oddjobd"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id382194"></a>Configuring <span class="command"><strong>oddjobd</strong></span></h2></div></div></div><p>
+	The <span class="command"><strong>oddjobd</strong></span> configuration is normally read from
+	<code class="filename">/etc/oddjobd.conf</code>, but in most deployments it
+	will direct the daemon to read all of the configuration files from
+	<code class="filename">/etc/oddjobd.conf.d</code>, taking the union of the
+	contents of all of the configuration files as its configuration.
+	</p><div class="tip" title="Tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>When installing your application, dropping
+	a new configuration file into this directory is recommended over
+	editing the existing configuration files.</p></div><p>
+	</p><p>
+	Each configuration file includes an &lt;oddjobconfig&gt;
+	element.  An &lt;oddjobconfig&gt; element contains
+	&lt;include&gt; elements, &lt;service&gt; elements,
+	&lt;allow&gt; elements, and &lt;deny&gt; elements.
+	</p><p>
+	An &lt;include&gt; element names a file which should also be
+	scanned for configuration data, and optionally defines an attribute
+	named "ignore_missing", which if set to "yes" will
+	cause failure to read the named file to be treated as a non-fatal
+	error.
+	</p><p>
+	A &lt;service&gt; element names a
+	<span class="package">D-Bus</span> service address at
+	which services defined within the scope of this element will be
+	provided by <span class="command"><strong>oddjobd</strong></span>.  The service address is given
+	as the value of its "name" attribute, and it may contain
+	&lt;object&gt; elements, &lt;allow&gt; elements, and
+	&lt;deny&gt; elements.
+	</p><div class="tip" title="Tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>The service name should be unique to your
+	application.  The name "com.redhat.oddjob" is
+	reserved.</p></div><p>
+	</p><p>
+	An &lt;object&gt; element names a
+	<span class="package">D-Bus</span> object path which
+	provides one or more interfaces to client processes.  The object path
+	is given as the value of its "name" attribute, and it may
+	contain &lt;interface&gt; elements.  Its name may include
+	wildcards, in which case any request to an object whose name matches
+	the wildcard will be considered to match this element.
+	</p><div class="caution" title="Caution" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Caution</h3><p>If a single client request matches
+	multiple different &lt;object&gt; elements, the behavior of
+	<span class="command"><strong>oddjobd</strong></span> becomes undefined.</p></div><p>  The
+	&lt;object&gt; element may also contain &lt;allow&gt; and
+	&lt;deny&gt; elements.
+	</p><p>
+	An &lt;interface&gt; element names a group of related methods
+	which <span class="command"><strong>oddjobd</strong></span> will provide at the containing
+	&lt;object&gt;'s path.  The interface name is given as the value
+	of its "name" attribute.  It may contain
+	&lt;method&gt;, &lt;allow&gt;, and &lt;deny&gt;
+	elements.
+	</p><p>
+	An &lt;method&gt; element names a specific method which
+	<span class="command"><strong>oddjobd</strong></span> will provide as part of the containing
+	&lt;interface&gt; at the containing &lt;object&gt;'s path.
+	The method name is given as the value of its "name"
+	attribute, and it may contain &lt;helper&gt;,
+	&lt;allow&gt;, and &lt;deny&gt; elements.
+	</p><p>
+	An &lt;helper&gt; element specifies that a method is implemented
+	as an external helper (<span class="command"><strong>oddjobd</strong></span> itself implements a
+	limited number of methods internally).  It includes a number of
+	attributes:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>"exec", the path of the binary to
+	run</p></li><li class="listitem"><p>"arguments", the number of arguments which a
+	client is expected to supply to the method</p></li><li class="listitem"><p>"prepend_user_name", whether or not the
+	calling user's name should be prepended to the list of arguments
+	before they are passed to the helper</p></li><li class="listitem"><p>"argument_passing_method", either
+	"stdin" (the default) or "cmdline", specifying
+	that method arguments should be passed in on stdin, one parameter per
+	line, or as command-line arguments
+	</p></li></ul></div><p>
+	</p><p>
+	An &lt;allow&gt; or &lt;deny&gt; element specifies an
+	entry in an access control list (<acronym class="acronym">ACL</acronym>) which
+	controls whether or not <span class="command"><strong>oddjobd</strong></span> will attempt to
+	fulfill client requests.
+	</p><p>
+	Each entry defines a set of values for
+	attributes of a client request.  If a specific request provides these
+	values, the access control list entry is considered to match it.
+	<span class="emphasis"><em>Attributes which are not specified as part of an access
+	control entry are ignored when checking if a request matches that
+	entry.</em></span> The defined attributes are:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>"user", the client's user
+	name</p></li><li class="listitem"><p>"min_uid", a UID which the user's UID must
+	be greater than or equal to</p></li><li class="listitem"><p>"max_uid", a UID which the user's UID must
+	be less than or equal to</p></li><li class="listitem"><p>"selinux_enforcing", "yes" or
+	"no", corresponding to whether SELinux is enabled and in
+	enforcing mode</p></li><li class="listitem"><p>"selinux_context", the SELinux context
+	of the client process</p></li><li class="listitem"><p>"selinux_user", the SELinux user
+	of the client process</p></li><li class="listitem"><p>"selinux_role", the SELinux role
+	of the client process</p></li><li class="listitem"><p>"selinux_type", the SELinux type
+	of the client process</p></li></ul></div><p>
+	</p><p>
+	The process of checking the ACL for any method is simple:
+	</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>First, if the ACL contains a &lt;deny&gt; element
+	which matches the request, access is denied.</p></li><li class="listitem"><p>Second, if the ACL contains an &lt;allow&gt;
+	element which matches the request, access is allowed.</p></li><li class="listitem"><p>If no entry in the ACL matches the request, the check
+	continues on to the containing &lt;interface&gt; element's ACL.
+	If no match is found, the containing &lt;object&gt; element's ACL
+	is consulted, then that of the containing &lt;service&gt;
+	element.  Lastly, the ACL of the top-level &lt;oddjobconfig&gt;
+	element is scanned.  If, after all of these checks, no match was found,
+	access is denied.</p></li></ol></div><p>
+	</p><p>
+	The helpers themselves are executed with superuser privileges and with
+	these variables set in the environment:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>"ODDJOB_CALLING_USER", the name of the
+	calling user</p></li><li class="listitem"><p>"ODDJOB_SERVICE_NAME", the name of the
+	called service</p></li><li class="listitem"><p>"ODDJOB_OBJECT_PATH", the name of the called
+	object</p></li><li class="listitem"><p>"ODDJOB_INTERFACE_NAME", the name of the
+	called interface</p></li><li class="listitem"><p>"ODDJOB_METHOD_NAME", the name of the called
+	method</p></li></ul></div><p>
+	</p><div class="caution" title="Caution" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Caution</h3><p>Helpers must treat arguments as
+	untrusted data to avoid escalating a compromise of an account
+	which would be allowed to call the method to a compromise of the
+	superuser account.  The <span class="command"><strong>oddjobd</strong></span> server performs
+	no other authentication.</p></div><p>
+	</p><p>
+	If an error occurs when <span class="command"><strong>oddjobd</strong></span> attempts to start
+	the helper, or if the helper exits abnormally due to a signal, the
+	caller receives an error message.
+	</p><p>
+	If the helper runs to completion, <span class="command"><strong>oddjobd</strong></span> reports
+	the helper's exit status, along with any data which the helper output
+	to its standard output and error descriptors.
+	</p></div><div class="section" title="Built-in Methods"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id427012"></a>Built-in Methods</h2></div></div></div><p>
+	The <span class="command"><strong>oddjobd</strong></span> server implements a small set of methods
+	internally as part of the com.redhat.oddjob interface of the
+	/com/redhat/oddjob object provided by the com.redhat.oddjob
+	service.  These include:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="emphasis"><em>list</em></span>: List the methods which the
+	calling user would be allowed to call.</p></li><li class="listitem"><p><span class="emphasis"><em>listall</em></span>: List all configured
+	methods.</p></li><li class="listitem"><p><span class="emphasis"><em>reload</em></span>: Reload the configuration
+	without restarting.
+	</p></li><li class="listitem"><p><span class="emphasis"><em>quit</em></span>: Exit.</p></li></ul></div><p>
+	Additionally, the <span class="command"><strong>oddjobd</strong></span> server implements the
+	D-Bus introspection interface for all services which it provides to
+	clients.  By default, attempts to call these interfaces are denied
+	unless ACLs have been put in place to allow it.
+	</p></div><div class="section" title="Implementation Limits"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id427065"></a>Implementation Limits</h2></div></div></div><p>
+	The current implementation of <span class="command"><strong>oddjobd</strong></span> imposes
+	some limitations on clients.
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>A client request can contain no more than 65535
+	arguments.</p></li><li class="listitem"><p>No more than 65535 services may be
+	defined.</p></li><li class="listitem"><p>A service can provide no more than 65535
+	objects.</p></li><li class="listitem"><p>An object can provide no more than 65535
+	interfaces.</p></li><li class="listitem"><p>An interface can provide no more than 65535
+	methods.</p></li></ul></div><p>
+	</p></div></div></body></html>

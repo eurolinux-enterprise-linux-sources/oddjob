@@ -1,0 +1,22 @@
+[id -u]
+2510
+[id -g]
+2516
+[pwd]
+/
+[stat    --printf "%A %-25F %n\n" /proc/$$/fd/*]
+lr-x------ symbolic link             /proc/$$/fd/0
+l-wx------ symbolic link             /proc/$$/fd/1
+l-wx------ symbolic link             /proc/$$/fd/2
+lr-x------ symbolic link             /proc/$$/fd/255
+[stat -L --printf "%A %-25F %n\n" /proc/$$/fd/*]
+prw------- fifo                      /proc/$$/fd/0
+prw------- fifo                      /proc/$$/fd/1
+prw------- fifo                      /proc/$$/fd/2
+-rwxr-xr-x regular file              /proc/$$/fd/255
+[echo $*]
+nalin foo
+[echo `cat`]
+
+[cat /proc/$$/cmdline]
+/bin/bash

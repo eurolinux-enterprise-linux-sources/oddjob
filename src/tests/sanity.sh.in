@@ -1,0 +1,29 @@
+#!/bin/bash
+echo \[id -u\]
+id -u
+echo \[id -g\]
+id -g
+echo \[pwd\]
+pwd
+echo "[stat    --printf \"%A %-25F %n\\n\" /proc/self/fd/*]" | \
+sed -r 's,(/proc/).*(/fd/),/proc/\$\$/fd/,g'
+stat    --printf "%A %-25F %n\n" `ls /proc/$$/fd/*` | \
+sed -r 's,(/proc/).*(/fd/),/proc/\$\$/fd/,g'
+echo "[stat -L --printf \"%A %-25F %n\\n\" /proc/self/fd/*]" | \
+sed -r 's,(/proc/).*(/fd/),/proc/\$\$/fd/,g'
+stat -L --printf "%A %-25F %n\n" `ls /proc/$$/fd/*` | \
+sed -r 's,(/proc/).*(/fd/),/proc/\$\$/fd/,g'
+sleep 1
+echo \[echo \$\*\]
+echo $*
+echo \[echo \`cat\`\]
+args=
+while read arg ; do
+	args="${args:+$args }$arg"
+done
+echo "$args"
+echo \[cat /proc/\$\$/cmdline\]
+# Note: D-Bus will truncate this string at the first zero byte, so try to
+# mimic that behavior in a way that still gives us a newline at the end of
+# our output.
+tr \\000 ' ' < /proc/$$/cmdline | awk '{print $1}'

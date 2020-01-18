@@ -1,0 +1,3 @@
+#!/bin/sh
+env | grep '^@PACKAGE_NAME_CAPS@' | sed -e s,=,=\",g -e s,\$,\",g
+exit 0

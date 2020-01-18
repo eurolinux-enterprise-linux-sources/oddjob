@@ -1,0 +1,17 @@
+- Teach the server to pull in not-always-used information that is used in ACLs
+  on an as-needed basis.
+- Teach the server to evaluate ACLs in a non-blocking manner.
+- Teach the server to use polkit.  The PolicyKit branch predates the polkit
+  rewrite, so it's not going to be much help.
+- Extend the server to also run actions in response to signals, evaluating
+  ACLs based on who emitted the signal.  (What should it do with the output?)
+- Auditing: learn how to report the calling process's "loginuid" attribute
+  (requires help from the message bus daemon).
+- Access control: support use of the "loginuid" in ACLs.
+- Add test cases:
+  ACLs:
+    UID range matching
+    SELinux context matching
+  Reloading
+- mkhomedir: preserve ACLs?
+- Audit logging, if applicable.

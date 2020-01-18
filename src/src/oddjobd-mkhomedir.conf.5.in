@@ -1,0 +1,12 @@
+.TH oddjobd-mkhomedir.conf 5 "30 July 2013" "oddjob Manual"
+
+.SH NAME
+oddjobd-mkhomedir.conf - allow limited use of the mkhomedir functions
+
+.SH DESCRIPTION
+The \fB@mysysconfdir@/oddjobd.conf.d/oddjobd-mkhomedir.conf\fR is typically
+processed along with other files in the \fB@mysysconfdir@/oddjobd.conf.d\fR
+directory.
+
+.SH SEE ALSO
+\fBoddjob.conf\fR(5)
