@@ -17,9 +17,12 @@
 
 Name: oddjob
 Version: 0.31.5
-Release: 3%{?dist}
+Release: 4%{?dist}
 Source0: http://fedorahosted.org/released/oddjob/oddjob-%{version}.tar.gz
 Source1: http://fedorahosted.org/released/oddjob/oddjob-%{version}.tar.gz.sig
+Patch0: oddjob-0.31.5-check.patch
+Patch1: oddjob-0.31.5-pamdoc.patch
+Patch2: oddjob-0.31.5-noumask.patch
 Summary: A D-Bus service which runs odd jobs on behalf of client applications
 License: BSD
 Group: System Environment/Daemons
@@ -84,6 +87,9 @@ This package contains a trivial sample oddjob service.
 
 %prep
 %setup -q
+%patch0 -p1 -b .check
+%patch1 -p1 -b .pamdoc
+%patch2 -p1 -b .noumask
 
 %build
 sample_flag=
@@ -131,7 +137,7 @@ install -m755 sample/oddjob-sample.sh		sample-install-root/sample/%{_libdir}/%{n
 chmod -x src/reload src/mkhomedirfor src/mkmyhomedir
 
 # Make sure the datestamps match in multilib pairs.
-touch -r src/oddjobd-mkhomedir.conf.in	$RPM_BUILD_ROOT/%{_sysconfdir}/oddjobd.conf.d/oddjobd-mkhomedir.conf
+touch -r src/oddjob-mkhomedir.conf.in	$RPM_BUILD_ROOT/%{_sysconfdir}/oddjobd.conf.d/oddjobd-mkhomedir.conf
 touch -r src/oddjob-mkhomedir.conf.in	$RPM_BUILD_ROOT/%{_sysconfdir}/dbus-1/system.d/oddjob-mkhomedir.conf
 
 %clean
@@ -249,6 +255,15 @@ fi
 exit 0
 
 %changelog
+* Tue Sep  9 2014 Nalin Dahyabhai <nalin@redhat.com> - 0.31.5-4
+- correctly check the error returned from getpwnam_r(), so that we don't
+  miss an ERANGE error (#1098616, part of #1108398)
+- add a note to pam_oddjob_mkhomedir's manual pointing to where the
+  configuration would actually go (part of #1108398)
+- stop overriding the system-wide UMASK default in our default
+  oddjobd-mkhomedir.conf file (#995097,#1123860), and stop using its
+  proprocessor-input file as a reference, since we're patching it now
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.31.5-3
 - Mass rebuild 2014-01-24
 

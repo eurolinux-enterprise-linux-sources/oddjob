@@ -1,0 +1,22 @@
+commit 71f0e7828edc9f7c7f81e87c7f9586ebfab9aec7
+Author: Nalin Dahyabhai <nalin@redhat.com>
+Date:   Tue Sep 9 15:30:19 2014 -0400
+
+    Note that the PAM module takes no options
+
+diff --git a/src/pam_oddjob_mkhomedir.8.in b/src/pam_oddjob_mkhomedir.8.in
+index 1d6b7ff..3793764 100644
+--- a/src/pam_oddjob_mkhomedir.8.in
++++ b/src/pam_oddjob_mkhomedir.8.in
+@@ -27,6 +27,11 @@ If \fIoddjobd\fR has not been configured to provide these methods, or the
+ user is not authorized to use them, then \fIoddjobd\fR will ignore the
+ module's requests.
+ 
++.SH OPTIONS
++The module takes no options.  What \fIoddjobd\fR does in response to the
++module's request is controlled by the daemon's configuration file, typically
++\fI@mysysconfdir@/oddjobd.conf.d/oddjobd-mkhomedir.conf\fR.
++
+ .SH SEE ALSO
+ \fBoddjob_request\fR(1)
+ \fBoddjob.conf\fR(5)
